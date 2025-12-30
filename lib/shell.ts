@@ -1,10 +1,8 @@
 'use strict';
 
-// Modules
 const _ = require('lodash');
 const child = require('child_process');
 const Log = require('./logger');
-const _shell = require('shelljs');
 const path = require('path');
 const parse = require('yargs-parser');
 const os = require('os');
@@ -12,28 +10,19 @@ const Promise = require('./promise');
 const stdoutStream = require('through');
 const stderrStream = require('through');
 
-/*
- * Helper to parse a command into useful metadataz
- */
 const parseCmd = meta => _.merge({}, meta, {
   bin: _.trimEnd(path.basename(_.first(meta._), '"')),
   cmd: meta._[1],
   args: _.drop(meta._, 2),
 });
 
-/*
- * Helper to parse and add a command to our running process log
- */
 const addCommand = ({cmd, id, mode = 'exec', process = {}} = {}) => _.merge({},
   parseCmd(parse(cmd)), {id, mode, process},
 );
 
-/*
- * Helper to promisify the exec
- */
 const exec = (cmd, opts) => new Promise(resolve => {
-  _shell.exec(cmd.join(' '), opts, (code, stdout, stderr) => {
-    resolve({code, stdout, stderr});
+  child.exec(cmd.join(' '), opts, (error, stdout, stderr) => {
+    resolve({code: error ? error.code || 1 : 0, stdout: stdout || '', stderr: stderr || ''});
   });
 });
 
@@ -185,6 +174,6 @@ module.exports = class Shell {
    * const which = lando.shell.which(DOCKER_EXECUTABLE);
    */
   which(cmd) {
-    return _shell.which(cmd);
+    return typeof Bun !== 'undefined' ? Bun.which(cmd) : null;
   }
 };
