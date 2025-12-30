@@ -12,8 +12,8 @@ jobs:
       matrix:
         os:
           - ubuntu-24.04
-        node-version:
-          - "20"
+        bun-version:
+          - "1.1"
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -22,21 +22,20 @@ jobs:
         with:
           key: lando-mvb-docs
           path: docs/.vitepress/cache/@lando/mvb
-      - name: Install node ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+      - name: Install bun ${{ matrix.bun-version }}
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
+          bun-version: ${{ matrix.bun-version }}
       - name: Install dependencies
-        run: npm clean-install --prefer-offline --frozen-lockfile
+        run: bun install --frozen-lockfile
 
       # Run tests
       - name: Run linter
-        run: npm run lint
+        run: bun run lint
       - name: Test mvb
-        run: npm run docs:mvb
+        run: bun run docs:mvb
       - name: Test build
-        run: npm run docs:build
+        run: bun run docs:build
 
   lando-docs-tests:
     runs-on: ${{ matrix.os }}
@@ -49,6 +48,8 @@ jobs:
           - ubuntu-24.04
         node-version:
           - "20"
+        bun-version:
+          - "1.1"
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -56,7 +57,10 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+      - name: Install bun ${{ matrix.bun-version }}
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ matrix.bun-version }}
       - name: Bundle Deps
         uses: lando/prepare-release-action@v3
         with:
@@ -64,7 +68,7 @@ jobs:
           version: dev
           sync: false
       - name: Install pkg dependencies
-        run: npm clean-install --prefer-offline --frozen-lockfile --production
+        run: bun install --frozen-lockfile --production
       - name: Package into node binary
         uses: lando/pkg-action@v6
         id: pkg-action
@@ -76,7 +80,7 @@ jobs:
           upload: false
           pkg: "@yao-pkg/pkg@5.16.1"
       - name: Install full deps
-        run: npm clean-install --prefer-offline --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Setup lando ${{ steps.pkg-action.outputs.file }}
         uses: lando/setup-lando@v3
         with:
