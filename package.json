@@ -19,15 +19,15 @@
   "main": "lib/lando.ts",
   "types": "types/index.d.ts",
   "bin": {
-    "lando": "./bin/lando.ts"
+    "lando": "./bin/lando"
   },
   "scripts": {
-    "build": "bun build ./bin/lando.ts --compile --outfile=dist/lando",
-    "build:linux-x64": "bun build ./bin/lando.ts --compile --target=bun-linux-x64 --outfile=dist/lando-linux-x64",
-    "build:linux-arm64": "bun build ./bin/lando.ts --compile --target=bun-linux-arm64 --outfile=dist/lando-linux-arm64",
-    "build:darwin-x64": "bun build ./bin/lando.ts --compile --target=bun-darwin-x64 --outfile=dist/lando-darwin-x64",
-    "build:darwin-arm64": "bun build ./bin/lando.ts --compile --target=bun-darwin-arm64 --outfile=dist/lando-darwin-arm64",
-    "build:windows-x64": "bun build ./bin/lando.ts --compile --target=bun-windows-x64 --outfile=dist/lando-windows-x64.exe",
+    "build": "bun build ./bin/lando --compile --outfile=dist/lando",
+    "build:linux-x64": "bun build ./bin/lando --compile --target=bun-linux-x64 --outfile=dist/lando-linux-x64",
+    "build:linux-arm64": "bun build ./bin/lando --compile --target=bun-linux-arm64 --outfile=dist/lando-linux-arm64",
+    "build:darwin-x64": "bun build ./bin/lando --compile --target=bun-darwin-x64 --outfile=dist/lando-darwin-x64",
+    "build:darwin-arm64": "bun build ./bin/lando --compile --target=bun-darwin-arm64 --outfile=dist/lando-darwin-arm64",
+    "build:windows-x64": "bun build ./bin/lando --compile --target=bun-windows-x64 --outfile=dist/lando-windows-x64.exe",
     "docs:build": "VPL_MVB_VERSION=$(git describe --tags --always --abbrev=1 --match=\"v[0-9].*\") vitepress build docs && bun run docs:rename-sitemap",
     "docs:dev": "VPL_BASE_URL=http://localhost:5173 VPL_MVB_VERSION=$(git describe --tags --always --abbrev=1 --match=\"v[0-9].*\") vitepress dev docs",
     "docs:mvb": "bunx mvb docs && bun run docs:rename-sitemap",
