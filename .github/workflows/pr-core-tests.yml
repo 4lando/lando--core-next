@@ -84,6 +84,8 @@ jobs:
           sync: false
       - name: Install dependencies
         run: bun install --frozen-lockfile
+      - name: Generate task manifest
+        run: bun run scripts/generate-task-manifest.ts
       - name: Build lando binary
         run: |
           bun build ./bin/lando --compile --outfile=dist/lando
