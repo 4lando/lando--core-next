@@ -1,12 +1,11 @@
-'use strict';
 
-const os = require('os');
+import os from 'os';
 
 /*
  * prettify object data for better tabular output
  * @TODO: is it ok to assume that all data in an array will be the same type?
  */
-module.exports = (data, {arraySeparator = ', '} = {}) => {
+export default (data, {arraySeparator = ', '} = {}) => {
   // if undefined then just return an empty string
   if (data === undefined) return '';
 

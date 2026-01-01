@@ -1,12 +1,12 @@
-'use strict';
+import {execSync} from 'child_process';
+import getDockerBinPath from './get-docker-bin-path.js';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 
 const which = (bin: string): string | null => {
   if (typeof Bun !== 'undefined' && Bun.which) return Bun.which(bin);
-  const {execSync} = require('child_process');
   try {
     return execSync(`which ${bin}`, {encoding: 'utf8'}).trim();
   } catch {
@@ -35,7 +35,7 @@ const getDockerBin = (bin, base, pathFallback = true) => {
   }
 };
 
-module.exports = () => {
-  const base = (process.landoPlatform === 'linux' || process.platform === 'linux') ? '/usr/bin' : require('./get-docker-bin-path')();
+export default () => {
+  const base = (process.landoPlatform === 'linux' || process.platform === 'linux') ? '/usr/bin' : getDockerBinPath();
   return getDockerBin('docker', base);
 };

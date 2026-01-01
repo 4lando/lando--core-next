@@ -1,9 +1,8 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-module.exports = ({installPath}) => {
+export default ({installPath}) => {
   return [installPath]
     .filter(p => typeof p === 'string' && p !== '' && fs.existsSync(p))
     .map(p => !fs.lstatSync(p).isDirectory() ? path.dirname(p) : p)

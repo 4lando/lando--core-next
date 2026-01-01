@@ -1,9 +1,11 @@
-'use strict';
+import getDockerBinPath from './get-docker-bin-path.js';
+import getDockerX from './get-docker-x.js';
+import isWslInterop from './is-wsl-interop.js';
 
-const _ = require('lodash');
+import _ from 'lodash';
 const browsers = ['electron', 'chrome', 'atom-shell'];
-const path = require('path');
-const os = require('os');
+import path from 'path';
+import os from 'os';
 
 const getBuildEngineVersion = (platform = process.landoPlatform ?? process.platform) => {
   switch (platform) {
@@ -25,8 +27,8 @@ const defaultConfig = options => ({
   configSources: [],
   coreBase: path.resolve(__dirname, '..'),
   disablePlugins: [],
-  dockerBin: require('../utils/get-docker-x')(),
-  dockerBinDir: require('../utils/get-docker-bin-path')(),
+  dockerBin: getDockerX(),
+  dockerBinDir: getDockerBinPath(),
   env: process.env,
   home: os.homedir(),
   isArmed: _.includes(['arm64', 'aarch64'], process.arch),
@@ -40,7 +42,7 @@ const defaultConfig = options => ({
     release: os.release(),
     arch: os.arch(),
     isWsl: os.release().toLowerCase().includes('microsoft'),
-    isWslInterop: require('../utils/is-wsl-interop')(),
+    isWslInterop: isWslInterop(),
   },
   pluginDirs: [{path: path.join(__dirname, '..'), subdir: 'plugins', namespace: '@lando'}],
   plugins: [],
@@ -50,7 +52,7 @@ const defaultConfig = options => ({
   // @TODO: orchestrator works a bit differently because it predates lando.setup() we set it elsewhere
   setup: {
     buildEngine: getBuildEngineVersion(process.landoPlatform ?? process.platform),
-    buildEngineAcceptLicense: !require('is-interactive')(),
+    buildEngineAcceptLicense: !isInteractive(),
     commonPlugins: {
       '@lando/acquia': 'latest',
       '@lando/apache': 'latest',
@@ -111,7 +113,7 @@ const defaultConfig = options => ({
 const isBrowser = () => _(process.versions)
   .reduce((isBrowser, version, thing) => (isBrowser || _.includes(browsers, thing)), false);
 
-module.exports = options => {
+export default options => {
   // Also add some info to the process so we can use this elsewhere
   process.lando = (isBrowser()) ? 'browser' : 'node';
   // The default config

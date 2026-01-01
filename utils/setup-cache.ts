@@ -1,11 +1,11 @@
-'use strict';
+import Cache from '../lib/cache.js';
 
-const path = require('path');
+import path from 'path';
 
-const {nanoid} = require('nanoid');
+import {nanoid} from 'nanoid';
 
-module.exports = (log, config) => {
-  const Cache = require('./../lib/cache');
+export default (log, config) => {
+  const Cache = Cache;
   const cache = new Cache({log, cacheDir: path.join(config.userConfRoot, 'cache')});
   if (!cache.get('id')) cache.set('id', nanoid(), {persist: true});
   config.user = cache.get('id');

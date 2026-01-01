@@ -1,9 +1,9 @@
-'use strict';
+import Plugin from '../components/plugin.js';
 
 // checks to see if a setting is disabled
-module.exports = (plugin, {
+export default (plugin, {
   fallback = 'unknown plugin',
-  Plugin = require('../components/plugin'),
+  Plugin = Plugin,
 } = {}) => {
   const name = plugin && plugin.name ? plugin.name : fallback;
   return {
@@ -11,7 +11,7 @@ module.exports = (plugin, {
     task: async (ctx, task) => {
       try {
         // add a short wait for ux purposes
-        await require('delay')(Math.floor(Math.random() * 2000));
+        await delay(Math.floor(Math.random() * 2000));
 
         // if we cannot find the plugin then error?
         if (!plugin) throw Error(`Could not find plugin ${name}!`);

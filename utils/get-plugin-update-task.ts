@@ -1,14 +1,15 @@
-'use strict';
+import parsePackageName from './parse-package-name.js';
+import Plugin from '../components/plugin.js';
 
-const os = require('os');
+import os from 'os';
 
 // checks to see if a setting is disabled
-module.exports = (plugin, {
+export default (plugin, {
   dir = os.tmpdir(),
-  Plugin = require('../components/plugin'),
+  Plugin = Plugin,
 } = {}) => {
   // parse into a full package
-  const pkg = require('./parse-package-name')(plugin);
+  const pkg = parsePackageName(plugin);
 
   return {
     title: `Updating ${pkg.name} to v${pkg.peg}`,

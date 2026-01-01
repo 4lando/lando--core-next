@@ -1,11 +1,10 @@
-'use strict';
 
-const _debug = require('debug');
+import _debug from 'debug';
 
-const Log = require('./../lib/logger');
+import Log from '../lib/logger.js';
 
 // adds required methods to ensure the lando v3 debugger can be injected into v4 things
-module.exports = (log, {namespace} = {}) => {
+export default (log, {namespace} = {}) => {
   const fresh = new Log({...log.shim, extra: namespace});
 
   // add sanitization

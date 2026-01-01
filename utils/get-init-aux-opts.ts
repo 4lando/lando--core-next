@@ -1,7 +1,6 @@
-'use strict';
 
-const _ = require('lodash');
-const slugify = require('./slugify.js');
+import _ from 'lodash';
+import slugify from './slugify.js';
 
 // Name Opts
 const nameOpts = {
@@ -51,4 +50,4 @@ const webrootOpts = {
   },
 };
 
-module.exports = recipes => ({name: nameOpts, recipe: recipeOpts(_.orderBy(recipes)), webroot: webrootOpts});
+export default recipes => ({name: nameOpts, recipe: recipeOpts(_.orderBy(recipes)), webroot: webrootOpts});

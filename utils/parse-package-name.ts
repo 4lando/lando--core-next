@@ -1,11 +1,11 @@
-'use strict';
+import npa from 'npm-package-arg';
 
 /*
  * TBD
  */
-module.exports = plugin => {
+export default plugin => {
   // parse the plugin
-  const result = require('npm-package-arg')(plugin);
+  const result = npa(plugin);
 
   // add a package property
   result.package = result.scope ? result.name.replace(`${result.scope}/`, '') : result.name;

@@ -1,13 +1,13 @@
-'use strict';
+import getDockerBinPath from './get-docker-bin-path.js';
 
-const path = require('path');
+import path from 'path';
 
-module.exports = () => {
+export default () => {
   switch (process.platform) {
     case 'darwin':
       return '/Applications/Docker.app/Contents/Resources/bin';
     case 'linux':
-      return require('./get-docker-bin-path')();
+      return getDockerBinPath();
     case 'win32': {
       const programFiles = process.env.ProgramW6432 || process.env.ProgramFiles;
       return path.win32.join(programFiles + '\\Docker\\Docker\\resources\\bin');

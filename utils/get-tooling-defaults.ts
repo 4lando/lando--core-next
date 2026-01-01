@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = ({
+export default ({
   name,
   app = {},
   appMount,

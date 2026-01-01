@@ -1,6 +1,5 @@
-'use strict';
 
-module.exports = value => {
+export default value => {
   try {
     return JSON.parse(value);
   } catch {

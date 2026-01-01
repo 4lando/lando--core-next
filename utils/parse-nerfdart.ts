@@ -1,7 +1,6 @@
 
-'use strict';
 
-module.exports = (key, registry = 'https://registry.npmjs.org') => {
+export default (key, registry = 'https://registry.npmjs.org') => {
   // if this is valid url then should be easy
   try {
     const url = new URL(key);

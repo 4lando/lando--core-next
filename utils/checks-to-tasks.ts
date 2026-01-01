@@ -1,9 +1,9 @@
-'use strict';
+import delay from 'delay';
 
-const _ = require('lodash');
-const {color} = require('listr2');
+import _ from 'lodash';
+import {color} from 'listr2';
 
-module.exports = ({
+export default ({
   args,
   type,
   title,
@@ -42,7 +42,7 @@ module.exports = ({
         // otherwise proceed with retrying
         } else {
           task.title = `${color.gray(title)} ${color.dim(rm)}${color.dim(code)}`;
-          return require('delay')(delay + (100 * count)).then(() => {
+          return delay(delay + (100 * count)).then(() => {
             throw error;
           });
         }

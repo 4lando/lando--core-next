@@ -1,20 +1,24 @@
-'use strict';
+import runCommand from './run-command.js';
 
 // Modules
-const merge = require('lodash/merge');
+import merge from 'lodash/merge';
+import createDebug from 'debug';
+
+// Create debug logger
+const defaultDebug = createDebug('@lando/get-wsl-status');
 
 // get the bosmang
 const defaults = {
-  debug: require('debug')('@lando/get-wsl-status'),
+  debug: defaultDebug,
   ignoreReturnCode: true,
   env: {...process.env, WSL_UTF8: 1},
 };
 
-module.exports = async (options = {}) => {
+export default async (options = {}) => {
   const args = ['-Command', 'wsl --status'];
   const opts = merge({}, defaults, options);
   const {debug} = opts;
-  const {code, stdout} = await require('./run-command')('powershell', args, opts);
+  const {code, stdout} = await runCommand('powershell', args, opts);
 
   // lets try to sus things out by first making sure we have something parseable
   const data = !stdout.includes('Default Version') ? Buffer.from(stdout, 'utf8').toString('utf16le') : stdout;

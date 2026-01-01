@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = (overrides = {}) => {
+export default (overrides = {}) => {
   const newOverrides = _.cloneDeep(overrides);
   if (_.has(newOverrides, 'image')) delete newOverrides.image;
   if (_.has(newOverrides, 'build')) delete newOverrides.build;

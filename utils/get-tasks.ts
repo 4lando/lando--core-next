@@ -1,8 +1,11 @@
-'use strict';
+import appRunEvents from '../hooks/app-run-events.js';
+import getToolingTasks from './get-tooling-tasks.js';
+import AsyncEvents from '../lib/events.js';
+import buildToolingTask from './build-tooling-task.js';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 
 /*
  * Paths to /
@@ -50,7 +53,7 @@ const appRunner = command => (argv, lando) => {
  * Helper to return the engine task runner
  */
 const engineRunner = (config, command) => (argv, lando) => {
-  const AsyncEvents = require('./../lib/events');
+  const AsyncEvents = AsyncEvents;
   // Build a minimal app
   const app = lando.cache.get(path.basename(config.composeCache));
   app.config = config;
@@ -59,12 +62,12 @@ const engineRunner = (config, command) => (argv, lando) => {
   // Load only what we need so we don't pay the appinit penalty
   if (!_.isEmpty(_.get(app, 'config.events', []))) {
     _.forEach(app.config.events, (cmds, name) => {
-      app.events.on(name, 9999, async data => await require('./../hooks/app-run-events')(app, lando, cmds, data));
+      app.events.on(name, 9999, async data => await appRunEvents(app, lando, cmds, data));
     });
   }
 
   // get tooling
-  app.config.tooling = require('./get-tooling-tasks')(app.config.tooling, app);
+  app.config.tooling = getToolingTasks(app.config.tooling, app);
   // get task
   // @NOTE: can we actually assume this will always find something? i **THINK** we catch upstream?
   const task = _.find(app.config.tooling, task => task.name === command);
@@ -94,10 +97,10 @@ const engineRunner = (config, command) => (argv, lando) => {
   // Final event to modify and then load and run
   return lando.events.emit('pre-engine-runner', app)
   .then(() => lando.events.emit('pre-command-runner', app))
-  .then(() => require('./build-tooling-task')(task, lando).run(argv));
+  .then(() => buildToolingTask(task, lando).run(argv));
 };
 
-module.exports = (config = {}, argv = {}, tasks = []) => {
+export default (config = {}, argv = {}, tasks = []) => {
   // merge in recipe cache config first
   if (fs.existsSync(config.recipeCache) && _.has(config, 'recipe')) {
     config = _.merge({}, JSON.parse(fs.readFileSync(config.recipeCache, {encoding: 'utf-8'})), config);

@@ -1,8 +1,7 @@
-'use strict';
 
-const slugify = require('slugify');
+import slugify from 'slugify';
 
-const {color} = require('listr2');
+import {color} from 'listr2';
 
 const defaults = task => ({
   canInstall: async () => true,
@@ -20,7 +19,7 @@ const defaults = task => ({
 /*
  * TBD
  */
-module.exports = otask => {
+export default otask => {
   // first make sure task is sufficiently defined
   // @TODO: post-install-notes?
   otask = {...defaults(otask), ...otask};

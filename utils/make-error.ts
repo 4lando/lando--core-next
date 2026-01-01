@@ -1,10 +1,9 @@
-'use strict';
 
 /* eslint-disable complexity */
 /*
  * Attempts to produce a standardized error object
  */
-module.exports = ({
+export default ({
   all,
   args,
   code,

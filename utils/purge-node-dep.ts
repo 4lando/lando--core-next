@@ -1,10 +1,9 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const remove = require('./remove');
+import fs from 'fs';
+import path from 'path';
+import remove from './remove.js';
 
-module.exports = (dir, dep) => {
+export default (dir, dep) => {
   if (!fs.existsSync(dir)) return;
 
   const entries = fs.readdirSync(dir);

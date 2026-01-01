@@ -1,12 +1,11 @@
-'use strict';
 
-const fs = require('fs');
-const os = require('os');
+import fs from 'fs';
+import os from 'os';
 
 const WINBIN_REGEX = /\/mnt\/.\/WINDOWS\/System32$/i;
 
 // Checks to see if Docker is installed via WSL/Windows interop.
-module.exports = () => {
+export default () => {
   // return anything that is not wsl as false
   if (!os.release().toLowerCase().includes('microsoft')) return false;
 

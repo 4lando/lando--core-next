@@ -1,14 +1,15 @@
-'use strict';
+import getHostPath from './get-host-path.js';
+import normalizePath from './normalize-path.js';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = (overrides, base = '.', volumes = {}) => {
+export default (overrides, base = '.', volumes = {}) => {
   // Normalize any build paths
   if (_.has(overrides, 'build')) {
     if (_.isObject(overrides.build) && _.has(overrides, 'build.context')) {
-      overrides.build.context = require('./normalize-path')(overrides.build.context, base);
+      overrides.build.context = normalizePath(overrides.build.context, base);
     } else {
-      overrides.build = require('./normalize-path')(overrides.build, base);
+      overrides.build = normalizePath(overrides.build, base);
     }
   }
   // Normalize any volumes
@@ -17,11 +18,11 @@ module.exports = (overrides, base = '.', volumes = {}) => {
       if (!_.includes(volume, ':')) {
         return volume;
       } else {
-        const local = require('./get-host-path')(volume);
+        const local = getHostPath(volume);
         const remote = _.last(volume.split(':'));
         // @TODO: I don't think below does anything?
         const excludes = _.keys(volumes).concat(_.keys(volumes));
-        const host = require('./normalize-path')(local, base, excludes);
+        const host = normalizePath(local, base, excludes);
         return [host, remote].join(':');
       }
     });

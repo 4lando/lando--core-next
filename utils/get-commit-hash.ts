@@ -1,9 +1,8 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-module.exports = (dir, {
+export default (dir, {
   refFile = path.join(dir, '.git', 'HEAD'),
   short = false,
 } = {}) => {

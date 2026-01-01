@@ -1,17 +1,17 @@
-'use strict';
-
 // Modules
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
+import Enquirer from 'enquirer';
+import {Listr} from 'listr2';
+import createDebug from 'debug';
+import isInteractive from 'is-interactive';
 
-const Enquirer = require('enquirer');
-
-// get the bosmang
-const {Listr} = require('listr2');
+// Create debug logger for task runner
+const taskRunnerDebug = createDebug('task-runner');
 
 // adds required methods to ensure the lando v3 debugger can be injected into v4 things
-module.exports = async (tasks, {
+export default async (tasks, {
   ctx = {},
   fallbackRenderer = 'simple',
   fallbackRendererOptions = {},
@@ -21,12 +21,12 @@ module.exports = async (tasks, {
   listrOptions = {},
 } = {}) => {
   // attempt to reset the renderer if its a string and has a renderer we can load
-  if (typeof renderer === 'string' && fs.existsSync(path.resolve(__dirname, '..', 'renderers', `${renderer}.js`))) {
-    renderer = require(path.resolve(__dirname, '..', 'renderers', renderer));
+  if (typeof renderer === 'string' && fs.existsSync(path.resolve(import.meta.dirname, '..', 'renderers', `${renderer}.js`))) {
+    renderer = (await import(path.resolve(import.meta.dirname, '..', 'renderers', `${renderer}.js`))).default;
   }
   // ditto for fallback renderer
-  if (typeof fallbackRenderer === 'string' && fs.existsSync(path.resolve(__dirname, '..', 'renderers', `${fallbackRenderer}.js`))) { // eslint-disable-line max-len
-    fallbackRenderer = require(path.resolve(__dirname, '..', 'renderers', fallbackRenderer));
+  if (typeof fallbackRenderer === 'string' && fs.existsSync(path.resolve(import.meta.dirname, '..', 'renderers', `${fallbackRenderer}.js`))) { // eslint-disable-line max-len
+    fallbackRenderer = (await import(path.resolve(import.meta.dirname, '..', 'renderers', `${fallbackRenderer}.js`))).default;
   }
 
   // if renderer force is on then make sure our fallback is just the normal renderer
@@ -37,7 +37,7 @@ module.exports = async (tasks, {
 
   // some sitautions just need the bare minimum
   if (process?.env?.TERM === 'dumb') renderer = 'simple';
-  if (process?.env?.CI && !require('is-interactive')()) renderer = 'simple';
+  if (process?.env?.CI && !isInteractive()) renderer = 'simple';
 
   const defaults = {
     ctx: {data: {}, errors: [], results: [], skipped: 0, ran: 0, total: 0},
@@ -49,7 +49,7 @@ module.exports = async (tasks, {
     registerSignalListeners: false,
     renderer,
     rendererOptions: {
-      log: require('debug')('task-runner'),
+      log: taskRunnerDebug,
       collapseSubtasks: false,
       suffixRetries: false,
       showErrorMessage: true,

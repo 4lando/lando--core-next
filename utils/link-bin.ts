@@ -1,12 +1,15 @@
-'use strict';
+import createDebug from 'debug';
+const defaultDebug = createDebug('@lando/link-bin');
+import getPosixbinContents from './get-posixbin-contents.js';
+import getWinbinContents from './get-winbin-contents.js';
 
 // Modules
-const fs = require('fs');
-const path = require('path');
-const remove = require('./remove');
-const write = require('./write-file');
+import fs from 'fs';
+import path from 'path';
+import remove from './remove.js';
+import write from './write-file.js';
 
-module.exports = (installDir, dest, {filename = 'lando', debug = require('debug')('@lando/link-bin')} = {}) => {
+export default (installDir, dest, {filename = 'lando', debug = defaultDebug} = {}) => {
   // ensure installDir and set some things
   fs.mkdirSync(installDir, {recursive: true});
   const posixbin = path.join(installDir, filename);
@@ -29,9 +32,9 @@ module.exports = (installDir, dest, {filename = 'lando', debug = require('debug'
     // we strip the extension from the dest because we want lando --help to just show "lando" and not "lando.exe"
     const {dir, name} = path.parse(dest);
     // first we need to create a cmd wrapper
-    write(winbin, require('./get-winbin-contents')(path.join(dir, name)));
+    write(winbin, getWinbinContents(path.join(dir, name)));
     // and then posix wrapper
-    write(posixbin, require('./get-posixbin-contents')(path.join(dir, name)));
+    write(posixbin, getPosixbinContents(path.join(dir, name)));
 
     // and make them executable for good measure
     fs.chmodSync(winbin, 0o755);

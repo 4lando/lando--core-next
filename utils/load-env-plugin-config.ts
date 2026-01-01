@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = prefix => _(process.env)
+export default prefix => _(process.env)
   // Only muck with prefix_LANDO_CONFIG variables
   .pickBy((value, key) => _.includes(key, `${prefix}_PLUGIN_CONFIG`))
   // reduce into a single object

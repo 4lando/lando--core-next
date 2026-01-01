@@ -1,9 +1,8 @@
-'use strict';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
-const url = require('url');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
+import url from 'url';
 
 const setDockerHost = (hostname, port = 2376) => url.format({
   protocol: 'tcp',
@@ -12,7 +11,7 @@ const setDockerHost = (hostname, port = 2376) => url.format({
   port,
 });
 
-module.exports = ({engineConfig = {}, env = {}}) => {
+export default ({engineConfig = {}, env = {}}) => {
   // Set defaults if we have to
   if (_.isEmpty(engineConfig)) {
     engineConfig = {

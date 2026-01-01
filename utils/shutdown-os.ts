@@ -1,8 +1,11 @@
-'use strict';
+import createDebug from 'debug';
+const defaultDebug = createDebug('@lando/shutdown-os');
+import runElevated from './run-elevated.js';
+import runCommand from './run-command.js';
 
-module.exports = ({
+export default ({
   args = [],
-  debug = require('debug')('@lando/shutdown-os'),
+  debug = defaultDebug,
   message = 'Lando wants to restart your computer',
   password = undefined,
   type = 'restart',
@@ -23,7 +26,7 @@ module.exports = ({
       args.push(wait);
       // message
       args.push(`"${message}"`);
-      return require('./run-elevated')(args, {password, debug});
+      return runElevated(args, {password, debug});
     case 'linux':
       // handle the restart type
       if (type === 'logout') args.push('--reboot');
@@ -35,7 +38,7 @@ module.exports = ({
       // message
       args.push(`"${message}"`);
 
-      return require('./run-command')('shutdown', args, {debug});
+      return runCommand('shutdown', args, {debug});
     case 'win32':
       // handle the restart type
       if (type === 'logout') args.push('/l');
@@ -49,10 +52,10 @@ module.exports = ({
       args.push('/c');
       args.push(message);
 
-      return require('./run-command')('shutdown.exe', args, {debug});
+      return runCommand('shutdown.exe', args, {debug});
     case 'wsl':
       args.push('-Command');
       args.push(`wsl --terminate ${process.env.WSL_DISTRO_NAME}`);
-      return require('./run-command')('powershell.exe', args, {debug});
+      return runCommand('powershell.exe', args, {debug});
   }
 };

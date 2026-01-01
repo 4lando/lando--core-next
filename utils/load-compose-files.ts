@@ -1,9 +1,9 @@
-'use strict';
+import normalizeFiles from './normalize-files.js';
 
-const _ = require('lodash');
-const Yaml = require('./../lib/yaml');
+import _ from 'lodash';
+import Yaml from '../lib/yaml.js';
 const yaml = new Yaml();
 
-module.exports = (files, dir) => _(require('./normalize-files')(files, dir))
+export default (files, dir) => _(normalizeFiles(files, dir))
   .map(file => yaml.load(file))
   .value();

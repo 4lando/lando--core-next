@@ -1,13 +1,13 @@
-'use strict';
+import {execSync} from 'child_process';
+import getComposeBinPath from './get-compose-bin-path.js';
 
-const _ = require('lodash');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 const which = (bin: string): string | null => {
   if (typeof Bun !== 'undefined' && Bun.which) return Bun.which(bin);
-  const {execSync} = require('child_process');
   try {
     return execSync(`which ${bin}`, {encoding: 'utf8'}).trim();
   } catch {
@@ -35,7 +35,7 @@ const getDockerBin = (bin, base, pathFallback = true) => {
   }
 };
 
-module.exports = ({orchestratorVersion = '2.31.0', userConfRoot = os.tmpdir()} = {}) => {
+export default ({orchestratorVersion = '2.31.0', userConfRoot = os.tmpdir()} = {}) => {
   const orchestratorBin = `docker-compose-v${orchestratorVersion}`;
   switch (process.platform) {
     case 'darwin':
@@ -45,13 +45,13 @@ module.exports = ({orchestratorVersion = '2.31.0', userConfRoot = os.tmpdir()} =
         return getDockerBin(orchestratorBin, path.join(userConfRoot, 'bin'), false);
       }
       // otherwise use docker desktop one if available
-      return getDockerBin('docker-compose', require('./get-compose-bin-path')(), process.platform === 'linux');
+      return getDockerBin('docker-compose', getComposeBinPath(), process.platform === 'linux');
     case 'win32':
       // use lando bin if available
       if (fs.existsSync(path.join(userConfRoot, 'bin', `${orchestratorBin}.exe`))) {
         return getDockerBin(orchestratorBin, path.join(userConfRoot, 'bin'), false);
       }
       // otherwise use docker desktop one if available
-      return getDockerBin('docker-compose', require('./get-compose-bin-path')());
+      return getDockerBin('docker-compose', getComposeBinPath());
   }
 };

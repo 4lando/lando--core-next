@@ -1,12 +1,12 @@
-'use strict';
+import makeExecutable from './make-executable.js';
 
-const _ = require('lodash');
-const fs = require('fs-extra');
-const os = require('os');
-const path = require('path');
-const remove = require('./remove');
+import _ from 'lodash';
+import fs from 'fs-extra';
+import os from 'os';
+import path from 'path';
+import remove from './remove.js';
 
-module.exports = (src: string, dest: string = os.tmpdir()) => {
+export default (src: string, dest: string = os.tmpdir()) => {
   fs.mkdirSync(dest, {recursive: true});
 
   try {
@@ -14,7 +14,7 @@ module.exports = (src: string, dest: string = os.tmpdir()) => {
     fs.copySync(src, dest, {
       filter: (filepath: string) => path.extname(filepath) !== '.js',
     });
-    require('./make-executable')(_(fs.readdirSync(dest))
+    makeExecutable(_(fs.readdirSync(dest))
       .filter((file: string) => path.extname(file) === '.sh')
       .value()
     , dest);
@@ -32,7 +32,7 @@ module.exports = (src: string, dest: string = os.tmpdir()) => {
     fs.copySync(src, dest, {
       filter: (filepath: string) => path.extname(filepath) !== '.js',
     });
-    require('./make-executable')(_(fs.readdirSync(dest))
+    makeExecutable(_(fs.readdirSync(dest))
       .filter((file: string) => path.extname(file) === '.sh')
       .value()
     , dest);

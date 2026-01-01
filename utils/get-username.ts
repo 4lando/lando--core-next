@@ -1,5 +1,4 @@
-'use strict';
 
-const os = require('os');
+import os from 'os';
 
-module.exports = () => os.userInfo().username;
+export default () => os.userInfo().username;

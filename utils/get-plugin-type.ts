@@ -1,3 +1,2 @@
-'use strict';
 
-module.exports = () => require('is-root')() ? 'system' : 'user';
+export default () => isRoot() ? 'system' : 'user';

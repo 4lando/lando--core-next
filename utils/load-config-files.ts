@@ -1,9 +1,9 @@
-'use strict';
+import legacyMerge from './legacy-merge.js';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
-const yaml = require('../components/yaml');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
+import yaml from '../components/yaml.js';
 
 /*
  * @TODO
@@ -47,7 +47,7 @@ const normalizePlugins = (plugins = [], baseDir = __dirname) => _(plugins)
   })
   .value();
 
-module.exports = files => _(files)
+export default files => _(files)
   // Filter the source out if it doesn't exist
   .filter(source => fs.existsSync(source) || fs.existsSync(source.file))
   // If the file is just a string lets map it to an object
@@ -71,4 +71,4 @@ module.exports = files => _(files)
     return source;
   })
   // Start collecting
-  .reduce((a, source) => require('./legacy-merge')(a, source.data), {});
+  .reduce((a, source) => legacyMerge(a, source.data), {});

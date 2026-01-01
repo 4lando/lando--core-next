@@ -1,11 +1,10 @@
-'use strict';
 
-const isObject = require('lodash/isPlainObject');
-const merge = require('lodash/mergeWith');
-const mergeArrays = require('./merge-arrays');
+import isObject from 'lodash/isPlainObject';
+import merge from 'lodash/mergeWith';
+import mergeArrays from './merge-arrays.js';
 
 // @TODO: error handling
-module.exports = (object, sources, ams = ['merge:id', 'replace']) => {
+export default (object, sources, ams = ['merge:id', 'replace']) => {
   // if sources is not an array then make it so
   if (!Array.isArray(sources)) sources = [sources];
 

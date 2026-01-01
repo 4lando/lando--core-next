@@ -1,6 +1,6 @@
-'use strict';
+import spawnSyncStringer from './spawn-sync-stringer.js';
 
-const os = require('os');
+import os from 'os';
 
 const posixCmd = user => (['groups', [user]]);
 const win32Cmd = user => ([
@@ -11,14 +11,14 @@ const win32Cmd = user => ([
   ],
 ]);
 
-module.exports = (group, user, platform = process.platform) => {
+export default (group, user, platform = process.platform) => {
   // @TODO: throw error if no group specified?
   // set user to person running this process if its not set
   if (!user) user = os.userInfo().username;
 
   // get the result of the membership command
   const cmd = platform === 'win32' ? win32Cmd(user) : posixCmd(user);
-  const {status, stdout, stderr} = require('./spawn-sync-stringer')(...cmd);
+  const {status, stdout, stderr} = spawnSyncStringer(...cmd);
 
   // if we failed for some reason
   if (status !== 0) throw new Error(`Could not determine group situation: ${stderr}`);

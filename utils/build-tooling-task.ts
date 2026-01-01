@@ -1,10 +1,13 @@
-'use strict';
+import getToolingDefaults from './get-tooling-defaults.js';
+import buildDockerExec from './build-docker-exec.js';
+import buildToolingRunner from './build-tooling-runner.js';
+import parseToolingConfig from './parse-tooling-config.js';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = (config, injected) => {
+export default (config, injected) => {
   // Get our defaults and such
-  const getToolingDefaults = require('./get-tooling-defaults');
+  const getToolingDefaults = getToolingDefaults;
   const {name, app, appMount, cmd, describe, dir, env, options, service, stdio, user} = getToolingDefaults(config);
 
   // add debug stuff if debuggy
@@ -21,11 +24,11 @@ module.exports = (config, injected) => {
     // Kick off the pre event wrappers
     .then(() => app.events.emit(`pre-${eventName}`, config, answers))
     // Get an interable of our commandz
-    .then(() => _.map(require('./parse-tooling-config')(cmd, service, options, answers, sapis)))
+    .then(() => _.map(parseToolingConfig(cmd, service, options, answers, sapis)))
     // Build run objects
-    .map(({command, service}) => require('./build-tooling-runner')(app, command, service, user, env, dir, appMount))
+    .map(({command, service}) => buildToolingRunner(app, command, service, user, env, dir, appMount))
     // Try to run the task quickly first and then fallback to compose launch
-    .each(runner => require('./build-docker-exec')(injected, stdio, runner).catch(execError => {
+    .each(runner => buildDockerExec(injected, stdio, runner).catch(execError => {
       return injected.engine.isRunning(runner.id).then(isRunning => {
         if (!isRunning) {
           return injected.engine.run(runner).catch(composeError => {

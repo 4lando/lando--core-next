@@ -1,10 +1,10 @@
-'use strict';
+import stringArgv from 'string-argv';
 
-const _ = require('lodash');
-const isStringy = require('./is-stringy');
-const {nanoid} = require('nanoid');
+import _ from 'lodash';
+import isStringy from './is-stringy.js';
+import {nanoid} from 'nanoid';
 
-module.exports = (command, wrap = false, args = process.argv.slice(3), sapi = 3) => {
+export default (command, wrap = false, args = process.argv.slice(3), sapi = 3) => {
   // if stringy and multiline and
   if (isStringy(command) && command.split('\n').length > 1) {
     // prep for multipass
@@ -24,7 +24,7 @@ module.exports = (command, wrap = false, args = process.argv.slice(3), sapi = 3)
 
   // if api 4 then just prepend and we will handle it downstream
   if (sapi === 4) {
-    if (_.isString(command)) command = require('string-argv')(command);
+    if (_.isString(command)) command = stringArgv(command);
     return ['/etc/lando/exec.sh', ...command];
   }
 
@@ -34,7 +34,7 @@ module.exports = (command, wrap = false, args = process.argv.slice(3), sapi = 3)
   }
 
   // Parse the command if its a string
-  if (_.isString(command)) command = require('string-argv')(command);
+  if (_.isString(command)) command = stringArgv(command);
 
   // Wrap in shell if specified
   if (wrap && !_.isEmpty(_.intersection(command, ['&', '&&', '|', '||', '<<', '<', '>', '>>', '$']))) {

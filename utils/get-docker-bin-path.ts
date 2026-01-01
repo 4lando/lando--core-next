@@ -1,9 +1,8 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-module.exports = (platform = process.landoPlatform ?? process.platform) => {
+export default (platform = process.landoPlatform ?? process.platform) => {
   switch (platform) {
     case 'darwin':
       return '/Applications/Docker.app/Contents/Resources/bin';

@@ -1,8 +1,7 @@
-'use strict';
 
-const path = require('path');
+import path from 'path';
 
-module.exports = ({Labels, Id, Status}, separator = '_', src = []) => {
+export default ({Labels, Id, Status}, separator = '_', src = []) => {
   // Get name of docker container.
   const app = Labels['com.docker.compose.project'];
   const service = Labels['com.docker.compose.service'];

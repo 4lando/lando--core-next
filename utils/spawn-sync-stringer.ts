@@ -1,8 +1,7 @@
-'use strict';
 
-const {spawnSync} = require('child_process');
+import {spawnSync} from 'child_process';
 
-module.exports = (...args) => {
+export default (...args) => {
   const result = spawnSync(...args);
 
   // stringify and trim

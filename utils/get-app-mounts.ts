@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = app => _(app.services)
+export default app => _(app.services)
   // Objectify
   .map(service => _.merge({name: service}, _.get(app, `config.services.${service}`, {})))
   // Set the default

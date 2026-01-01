@@ -1,12 +1,12 @@
-'use strict';
+import Plugin from '../components/plugin.js';
 
-const os = require('os');
-const path = require('path');
+import os from 'os';
+import path from 'path';
 
 // checks to see if a setting is disabled
-module.exports = (plugin, {
+export default (plugin, {
   dir = os.tmpdir(),
-  Plugin = require('../components/plugin'),
+  Plugin = Plugin,
 } = {}) => {
   return {
     title: `Adding ${plugin}`,

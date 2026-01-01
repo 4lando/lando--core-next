@@ -1,8 +1,7 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const read = require('./read-file');
+import fs from 'fs';
+import path from 'path';
+import read from './read-file.js';
 
 const PRIVATE_KEY_REGEX = /^-+BEGIN\s.*PRIVATE KEY-+/;
 
@@ -31,7 +30,7 @@ const hasPassphrase = data => {
   return false;
 };
 
-module.exports = (paths = []) => {
+export default (paths = []) => {
   // if paths is a string then make it into an array
   if (typeof paths === 'string') paths = [paths];
 

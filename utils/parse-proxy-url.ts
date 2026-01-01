@@ -1,10 +1,9 @@
 
-'use strict';
 
-const _ = require('lodash');
-const url = require('url');
+import _ from 'lodash';
+import url from 'url';
 
-module.exports = data => {
+export default data => {
   // We add the protocol ourselves, so it can be parsed. We also change all *
   // occurrences for our magic word __wildcard__, because otherwise the url parser
   // won't parse wildcards in the hostname correctly.

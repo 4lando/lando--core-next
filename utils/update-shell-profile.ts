@@ -1,10 +1,9 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const read = require('./read-file');
-const write = require('./write-file');
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import read from './read-file.js';
+import write from './write-file.js';
 
 const trim = (data = []) => {
   while (data.length > 0 && data[data.length - 1] === '') data.pop();
@@ -12,7 +11,7 @@ const trim = (data = []) => {
   return data;
 };
 
-module.exports = (file, updates = []) => {
+export default (file, updates = []) => {
   // create empty file if it doesnt exist first
   if (!fs.existsSync(file)) {
     fs.mkdirSync(path.dirname(file), {recursive: true});

@@ -1,21 +1,27 @@
-'use strict';
+import runPowershellScript from './run-powershell-script.js';
+import mergePromise from './merge-promise.js';
 
 // Modules
-const fs = require('fs');
-const merge = require('lodash/merge');
-const os = require('os');
-const path = require('path');
+import fs from 'fs';
+import merge from 'lodash/merge';
+import os from 'os';
+import path from 'path';
+import createDebug from 'debug';
+import isInteractive from 'is-interactive';
 
-const {nanoid} = require('nanoid');
-const {spawn} = require('child_process');
+import {nanoid} from 'nanoid';
+import {spawn} from 'child_process';
+
+// Create debug logger
+const defaultDebug = createDebug('@lando/run-elevated');
 
 // get the bosmang
 const defaults = {
   encode: undefined,
   env: process.env,
-  debug: require('debug')('@lando/run-elevated'),
+  debug: defaultDebug,
   ignoreReturnCode: false,
-  isInteractive: require('is-interactive')(),
+  isInteractive: isInteractive(),
   method: process.platform === 'win32' ? 'run-elevated' : 'sudo',
   notify: true,
   password: undefined,
@@ -31,15 +37,15 @@ const getChild = (command, options) => {
       // @NOTE: we do this because if this code is run from a packaged up binary we dont have access to the file
       // from the outside
       const script = path.join(os.tmpdir(), `${nanoid()}.ps1`);
-      fs.copyFileSync(path.resolve(__dirname, '..', 'scripts', 'run-elevated.ps1'), script);
-      return require('./run-powershell-script')(script, command, options);
+      fs.copyFileSync(path.resolve(import.meta.dirname, '..', 'scripts', 'run-elevated.ps1'), script);
+      return runPowershellScript(script, command, options);
     }
     default:
       return spawn('sudo', command, options);
   }
 };
 
-module.exports = (command, options, stdout = '', stderr = '') => {
+export default (command, options, stdout = '', stderr = '') => {
   // @TODO: handle string args with string-argv?
   // merge our options over the defaults
   options = merge({}, defaults, options);
@@ -69,7 +75,7 @@ module.exports = (command, options, stdout = '', stderr = '') => {
   const child = getChild(command, options);
 
   // return the merged thingy
-  return require('./merge-promise')(child, async () => {
+  return mergePromise(child, async () => {
     return new Promise((resolve, reject) => {
       child.on('error', error => {
         debug('elevated command %o error %o', command, error?.message);

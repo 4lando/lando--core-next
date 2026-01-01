@@ -1,22 +1,27 @@
-'use strict';
+import spawnSyncStringer from './spawn-sync-stringer.js';
+import makeExecutable from './make-executable.js';
+import mergePromise from './merge-promise.js';
+import getAxios from './get-axios.js';
+import createDebug from 'debug';
 
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const remove = require('./remove');
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import remove from './remove.js';
 
-const {EventEmitter} = require('events');
-const {nanoid} = require('nanoid');
+import {EventEmitter} from 'events';
+import {nanoid} from 'nanoid';
 
-const axios = require('../utils/get-axios')({}, {}, {rejectUnauthorized: false});
+const axios = getAxios({}, {}, {rejectUnauthorized: false});
+const defaultDebug = createDebug('@lando/download-x');
 
 // helper to get a platform spec tmpfile
 const tmpfile = () => {
   return process.platform === 'win32' ? path.join(os.tmpdir(), `${nanoid()}.exe`) : path.join(os.tmpdir(), nanoid());
 };
 
-module.exports = (url, {
-  debug = require('debug')('@lando/download-x'),
+export default (url, {
+  debug = defaultDebug,
   dest = path.join(os.tmpdir(), nanoid()),
   test = false} = {},
 ) => {
@@ -65,9 +70,9 @@ module.exports = (url, {
   .finally(async () => {
     // if the file exists then try to finish up
     if (fs.existsSync(download.testfile)) {
-      require('./make-executable')([path.basename(download.testfile)], path.dirname(download.testfile));
+      makeExecutable([path.basename(download.testfile)], path.dirname(download.testfile));
       // run the test if we have one
-      download.test = test ? require('./spawn-sync-stringer')(download.testfile, test) : false;
+      download.test = test ? spawnSyncStringer(download.testfile, test) : false;
       const {pid, status, stderr, stdout} = download.test;
 
       // if we have a test and it succeeded just let the people know
@@ -98,7 +103,7 @@ module.exports = (url, {
   });
 
   // merge promise magix so we can await or not
-  return require('./merge-promise')(download, async () => {
+  return mergePromise(download, async () => {
     return new Promise((resolve, reject) => {
       download.on('error', error => reject(error));
       download.on('success', success => resolve(success));

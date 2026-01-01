@@ -1,5 +1,4 @@
-'use strict';
+import _ from 'lodash';
+import slugifyLib from 'slugify';
 
-const _ = require('lodash');
-
-module.exports = data => require('slugify')(_.toString(data), {lower: true, strict: true});
+export default (data: unknown) => slugifyLib(_.toString(data), {lower: true, strict: true});

@@ -1,7 +1,6 @@
-'use strict';
 
-const isObject = require('lodash/isPlainObject');
-const range = require('lodash/range');
+import isObject from 'lodash/isPlainObject';
+import range from 'lodash/range';
 
 // @TODO: func to get a protocol type
 // -> :PORT but handle :PORT-PORT
@@ -29,7 +28,7 @@ const getProtocolPorts = (ports = [], protocol = 'http') => {
     .flat(Number.POSITIVE_INFINITY);
 };
 
-module.exports = (ports = []) => {
+export default (ports = []) => {
   // get the http/https protocols
   const http = getProtocolPorts(ports, 'http');
   const https = getProtocolPorts(ports, 'https');

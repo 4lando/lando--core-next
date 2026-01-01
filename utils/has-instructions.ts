@@ -1,7 +1,6 @@
-'use strict';
 
 // checks if an Image file has certain instructions
-module.exports = (contents = '', instructions = ['COPY', 'ADD']) => {
+export default (contents = '', instructions = ['COPY', 'ADD']) => {
   const matches = contents.split('\n')
     .map(line => line.trim())
     .filter(line => line.length > 0)

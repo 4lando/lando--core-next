@@ -1,11 +1,10 @@
-'use strict';
 
-const isObject = require('lodash/isPlainObject');
-const kebabCase = require('lodash/kebabCase');
-const merge = require('lodash/merge');
-const toPosixPath = require('./to-posix-path');
+import isObject from 'lodash/isPlainObject';
+import kebabCase from 'lodash/kebabCase';
+import merge from 'lodash/merge';
+import toPosixPath from './to-posix-path.js';
 
-module.exports = (volumes = [], {_data, appRoot, id, normalizeVolumes, project, user}) => {
+export default (volumes = [], {_data, appRoot, id, normalizeVolumes, project, user}) => {
   return volumes.map(volume => {
     // if volume is a single string then its either a bind mount
     if (typeof volume === 'string' && toPosixPath(volume).split(':').length > 1) {

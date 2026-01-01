@@ -1,8 +1,7 @@
-'use strict';
 
-const semver = require('semver');
+import semver from 'semver';
 
-module.exports = (raw, {
+export default (raw, {
   includePrerelease = false,
   loose = false,
   satisfies = 'x.x.x',

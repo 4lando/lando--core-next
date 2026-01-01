@@ -1,9 +1,8 @@
-'use strict';
 
-const _ = require('lodash');
-const path = require('path');
+import _ from 'lodash';
+import path from 'path';
 
-module.exports = (local, base = '.', excludes = []) => {
+export default (local, base = '.', excludes = []) => {
   // Return local if it starts with $ or ~
   if (_.startsWith(local, '$') || _.startsWith(local, '~')) return local;
   // Return local if it is one of the excludes

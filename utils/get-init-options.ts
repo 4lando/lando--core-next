@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = (all, lando, options = {}) => {
+export default (all, lando, options = {}) => {
   _.forEach(all, one => {
     if (_.has(one, 'options')) {
       _.forEach(one.options(lando), () => {

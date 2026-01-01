@@ -1,3 +1,2 @@
-'use strict';
 
-module.exports = c => c.cid || c.id || c.containerName || c.containerID || c.name;
+export default c => c.cid || c.id || c.containerName || c.containerID || c.name;

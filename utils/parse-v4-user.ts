@@ -1,9 +1,8 @@
 
-'use strict';
 
-const isObject = require('lodash/isPlainObject');
+import isObject from 'lodash/isPlainObject';
 
-module.exports = user => {
+export default user => {
   // if user is nully then return empty object
   if (user === undefined || user === null || user === false) return {};
 

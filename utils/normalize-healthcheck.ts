@@ -1,8 +1,7 @@
-'use strict';
 
 const defaults = {delay: 1000, retry: 25, user: 'root'};
 
-module.exports = healthcheck => {
+export default healthcheck => {
   // if healthcheck is a string then objectify
   if (typeof healthcheck === 'string') healthcheck = {command: healthcheck};
   // ditto if its an array

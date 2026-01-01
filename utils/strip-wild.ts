@@ -1,7 +1,6 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = versions => _(versions)
+export default versions => _(versions)
   .map(version => (version.split('.')[2] === 'x') ? _.slice(version.split('.'), 0, 2).join('.') : version)
   .value();

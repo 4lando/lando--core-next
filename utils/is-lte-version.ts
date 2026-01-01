@@ -1,9 +1,8 @@
-'use strict';
 
-const semver = require('semver');
-const isDevVersion = require('./is-dev-version');
+import semver from 'semver';
+import isDevVersion from './is-dev-version.js';
 
-module.exports = (a, b) => {
+export default (a, b) => {
   // parse the versions
   a = semver.parse(a);
   b = semver.parse(b);

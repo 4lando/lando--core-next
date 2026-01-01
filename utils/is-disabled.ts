@@ -1,6 +1,5 @@
-'use strict';
 
-module.exports = data => {
+export default data => {
   // return true if boolean false
   if (data === false || data === 0) return true;
   // return true if nully

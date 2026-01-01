@@ -1,11 +1,10 @@
-'use strict';
 
-const parseND = require('./parse-nerfdart');
+import parseND from './parse-nerfdart.js';
 
 /*
  * brief wrapper to accomodate lando 3 conventions when using lando 4 plugin fetching
  */
-module.exports = (options = {}, popts = {}) => {
+export default (options = {}, popts = {}) => {
   // if we only have one registry/scope and its global then set registry
   if (options.registry && options.registry.length === 1 && options.registry[0].split('=').length === 1) {
     popts.registry = options.registry[0];
