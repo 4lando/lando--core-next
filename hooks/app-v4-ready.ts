@@ -1,8 +1,9 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async app => {
+import dumpComposeData from '../utils/dump-compose-data.js';
+
+export default async app => {
   _.forEach(app.v4.services.map(service => service.id), id => {
     // remove v3 app mount
     const mounts = _.find(app.composeData, compose => compose.id === 'mounts');
@@ -22,7 +23,7 @@ module.exports = async app => {
 
   // Log
   app.initialized = false;
-  app.compose = require('../utils/dump-compose-data')(app.composeData, app._dir);
+  app.compose = dumpComposeData(app.composeData, app._dir);
   app.log.verbose('v4 app is ready!');
   app.initialized = true;
   return app.events.emit('ready-v4');

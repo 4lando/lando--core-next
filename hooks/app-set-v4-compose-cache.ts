@@ -1,3 +1,2 @@
-'use strict';
 
-module.exports = async app => app.v4.updateComposeCache();
+export default async app => app.v4.updateComposeCache();

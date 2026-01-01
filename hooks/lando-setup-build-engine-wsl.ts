@@ -1,15 +1,21 @@
-'use strict';
+import getAxios from '../utils/get-axios.js';
+import fs from 'fs';
+import getDockerDesktopBin from '../utils/get-docker-desktop-x.js';
+import getWinEnvar from '../utils/get-win32-envvar-from-wsl.js';
+import path from 'path';
+import semver from 'semver';
+import wslpath from '../utils/winpath-2-wslpath.js';
 
-const axios = require('../utils/get-axios')();
-const fs = require('fs');
-const getDockerDesktopBin = require('../utils/get-docker-desktop-x');
-const getWinEnvar = require('../utils/get-win32-envvar-from-wsl');
-const path = require('path');
-const semver = require('semver');
-const wslpath = require('../utils/winpath-2-wslpath');
+import {color} from 'listr2';
+import {nanoid} from 'nanoid';
 
-const {color} = require('listr2');
-const {nanoid} = require('nanoid');
+import debugShim from '../utils/debug-shim.js';
+import downloadX from '../utils/download-x.js';
+import isGroupMember from '../utils/is-group-member.js';
+import runElevated from '../utils/run-elevated.js';
+import runPowershellScript from '../utils/run-powershell-script.js';
+
+const axios = getAxios();
 
 const buildIds = {
   '4.37.1': '178610',
@@ -68,7 +74,7 @@ const getEngineDownloadUrl = (id = '175267') => {
  * wrapper for docker-desktop install
  */
 const downloadDockerDesktop = (url, {debug, dest, task, ctx}) => new Promise((resolve, reject) => {
-  const download = require('../utils/download-x')(url, {
+  const download = downloadX(url, {
     debug,
     dest: path.posix.join(dest, `${nanoid()}.exe`),
   });
@@ -89,8 +95,8 @@ const downloadDockerDesktop = (url, {debug, dest, task, ctx}) => new Promise((re
   });
 });
 
-module.exports = async (lando, options) => {
-  const debug = require('../utils/debug-shim')(lando.log);
+export default async (lando, options) => {
+  const debug = debugShim(lando.log);
   debug.enabled = lando.debuggy;
 
   // if build engine is set to false allow it to be skipped
@@ -153,7 +159,7 @@ module.exports = async (lando, options) => {
 
       // run install command
       task.title = `Installing build engine ${color.dim('(this may take a minute)')}`;
-      const result = await require('../utils/run-powershell-script')(script, args, {debug});
+      const result = await runPowershellScript(script, args, {debug});
       result.download = ctx.download;
 
       // finish up
@@ -173,10 +179,10 @@ module.exports = async (lando, options) => {
     comments: {
       'NOT INSTALLED': `Will add ${lando.config.username} to docker group`,
     },
-    hasRun: async () => require('../utils/is-group-member')('docker'),
+    hasRun: async () => isGroupMember('docker'),
     task: async (ctx, task) => {
       // check one last time incase this was added by a dependee or otherwise
-      if (require('../utils/is-group-member')('docker')) return {code: 0};
+      if (isGroupMember('docker')) return {code: 0};
 
       // prompt for password if interactive and we dont have it
       if (ctx.password === undefined && lando.config.isInteractive) {
@@ -186,7 +192,7 @@ module.exports = async (lando, options) => {
           message: `Enter computer password for ${lando.config.username} to add them to docker group`,
           validate: async input => {
             const options = {debug, ignoreReturnCode: true, password: input};
-            const response = await require('../utils/run-elevated')(['echo', 'hello there'], options);
+            const response = await runElevated(['echo', 'hello there'], options);
             if (response.code !== 0) return response.stderr;
             return true;
           },
@@ -195,7 +201,7 @@ module.exports = async (lando, options) => {
 
       const script = path.join(lando.config.userConfRoot, 'scripts', 'add-to-group.sh');
       const command = [script, '--user', lando.config.username, '--group', 'docker'];
-      const response = await require('../utils/run-elevated')(command, {debug, password: ctx.password});
+      const response = await runElevated(command, {debug, password: ctx.password});
       task.title = `Added ${lando.config.username} to docker group`;
       return response;
     },

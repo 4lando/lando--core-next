@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async app => {
+export default async app => {
   // get local services
   const locals = _.get(app, 'opts.local', []);
   // get v4 services

@@ -1,8 +1,7 @@
-'use strict';
 
-const remove = require('../utils/remove');
+import remove from '../utils/remove.js';
 
-module.exports = async app => {
+export default async app => {
   // remove app compose directory and other things
   try {
     remove(app._dir);

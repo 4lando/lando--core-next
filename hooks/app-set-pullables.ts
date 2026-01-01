@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async app => {
+export default async app => {
   // Determine local vs pullable services
   const whereats = _(_.get(app, 'config.services', {}))
     .map((data, service) => ({

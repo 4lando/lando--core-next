@@ -1,13 +1,15 @@
-'use strict';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
+
+import loadLegacyInits from './lando-load-legacy-inits.js';
 
 const loadTasksFromManifest = lando => {
   try {
+    // lib/task-manifest uses CommonJS - keep require until lib/ is converted
     const {taskManifest} = require('../lib/task-manifest');
-    const rootDir = path.resolve(__dirname, '..');
+    const rootDir = path.resolve(import.meta.dirname, '..');
     for (const {name, factory} of taskManifest) {
       const taskFactory = factory.default || factory;
       const task = taskFactory(lando, {});
@@ -32,14 +34,15 @@ const loadTasksFromFilesystem = lando => {
       .value(),
   ));
 
+  // Dynamic require for loading arbitrary task files at runtime
   for (const file of taskFiles) {
     lando.tasks.push({...require(file)(lando, {}), file});
     lando.log.debug('autoloaded global task %s', path.basename(file, '.js'));
   }
 };
 
-module.exports = async lando => {
-  await require('./lando-load-legacy-inits')(lando);
+export default async lando => {
+  await loadLegacyInits(lando);
 
   if (!loadTasksFromManifest(lando)) {
     loadTasksFromFilesystem(lando);

@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   return lando.engine.list({project: app.project, all: true}).then(data => {
     if (_.isEmpty(data)) {
       lando.cache.remove(app.v4.preLockfile);

@@ -1,7 +1,9 @@
-'use strict';
+import legacyPluginNotice from '../messages/legacy-plugin-notice.js';
 
-module.exports = async app => {
-  const Plugin = require('../components/plugin');
+// Plugin uses CommonJS - keep require until components/ is converted
+const Plugin = require('../components/plugin');
+
+export default async app => {
   const legacyPlugins = app.plugins.registry
     .map(plugin => new Plugin(plugin.dir))
     .filter(plugin => plugin.legacyPlugin)
@@ -9,7 +11,7 @@ module.exports = async app => {
 
   // add legacy plugin notice if needed:
   if (legacyPlugins.length > 0) {
-    app.addMessage(require('../messages/legacy-plugin-notice')(legacyPlugins));
+    app.addMessage(legacyPluginNotice(legacyPlugins));
   }
 };
 

@@ -1,8 +1,13 @@
-'use strict';
 
-const axios = require('../utils/get-axios')();
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import {color} from 'listr2';
+
+import getAxios from '../utils/get-axios.js';
+import debugShim from '../utils/debug-shim.js';
+import downloadX from '../utils/download-x.js';
+
+const axios = getAxios();
 
 /*
  * Helper to get docker compose v2 download url
@@ -41,9 +46,8 @@ const getComposeDownloadDest = (base, version = '2.31.0') => {
   }
 };
 
-module.exports = async (lando, options) => {
-  const debug = require('../utils/debug-shim')(lando.log);
-  const {color} = require('listr2');
+export default async (lando, options) => {
+  const debug = debugShim(lando.log);
 
   // get stuff from config/opts
   const {orchestratorBin, userConfRoot} = lando.config;
@@ -71,7 +75,7 @@ module.exports = async (lando, options) => {
       return true;
     },
     task: async (ctx, task) => new Promise((resolve, reject) => {
-      const download = require('../utils/download-x')(url, {debug, dest, test: ['--version']});
+      const download = downloadX(url, {debug, dest, test: ['--version']});
       // success
       download.on('done', data => {
         task.title = `Installed orchestrator (Docker Compose) to ${dest}`;

@@ -1,13 +1,16 @@
-'use strict';
 
-const fs = require('fs');
-const getWinEnvar = require('../utils/get-win32-envvar-from-wsl');
-const path = require('path');
-const wslpath = require('../utils/winpath-2-wslpath');
-const remove = require('../utils/remove');
+import fs from 'fs';
+import getWinEnvar from '../utils/get-win32-envvar-from-wsl.js';
+import path from 'path';
+import wslpath from '../utils/winpath-2-wslpath.js';
+import remove from '../utils/remove.js';
+import debugShim from '../utils/debug-shim.js';
+import validateCa from '../utils/validate-ca.js';
+import writeFile from '../utils/write-file.js';
+import {createCA} from 'mkcert';
 
-module.exports = async (lando, options) => {
-  const debug = require('../utils/debug-shim')(lando.log);
+export default async (lando, options) => {
+  const debug = debugShim(lando.log);
 
   const {caCert, caKey} = lando.config;
 
@@ -23,7 +26,7 @@ module.exports = async (lando, options) => {
       if ([caCert, caKey].some(file => !fs.existsSync(file))) return false;
 
       // check if the ca is valid and has a matching key
-      if (!require('../utils/validate-ca')(caCert, caKey, {debug})) {
+      if (!validateCa(caCert, caKey, {debug})) {
         remove(caCert);
         remove(caKey);
         return false;
@@ -33,9 +36,6 @@ module.exports = async (lando, options) => {
       return true;
     },
     task: async (ctx, task) => {
-      const write = require('../utils/write-file');
-      const {createCA} = require('mkcert');
-
       // generate the CA and KEY
       const {cert, key} = await createCA({
         organization: 'Lando Development CA',
@@ -46,18 +46,17 @@ module.exports = async (lando, options) => {
       });
 
       // write the cert and key
-      write(caCert, cert);
-      write(caKey, key);
+      writeFile(caCert, cert);
+      writeFile(caKey, key);
 
       // on wsl we also want to move these over
       if (lando.config.os.landoPlatform === 'wsl') {
-        const write = require('../utils/write-file');
         const winHome = getWinEnvar('USERPROFILE');
         const winCertsDir = wslpath(path.join(winHome, '.lando', 'certs'));
         const wcaCert = path.join(winCertsDir, path.basename(caCert));
         const wcaKey = path.join(winCertsDir, path.basename(caKey));
-        write(wcaCert, cert);
-        write(wcaKey, key);
+        writeFile(wcaCert, cert);
+        writeFile(wcaKey, key);
       }
 
       task.title = 'Created Lando Development CA';

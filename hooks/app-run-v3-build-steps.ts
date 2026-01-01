@@ -1,6 +1,7 @@
-'use strict';
+import _ from 'lodash';
 
-const _ = require('lodash');
+import filterV3BuildSteps from '../utils/filter-v3-build-steps.js';
+import runV3Build from '../utils/run-v3-build.js';
 
 // Build keys
 const preRootSteps = [
@@ -28,7 +29,7 @@ const postBuildSteps = [
   'run_as_me',
 ];
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // Add in build hashes
   app.meta.lastPreBuildHash = _.trim(lando.cache.get(app.preLockfile));
   app.meta.lastPostBuildHash = _.trim(lando.cache.get(app.postLockfile));
@@ -55,11 +56,11 @@ module.exports = async (app, lando) => {
 
   // Queue up both legacy and new build steps
   app.events.on('pre-start', 100, () => {
-    const preBuild = require('../utils/filter-v3-build-steps')(buildV3Services, app, preRootSteps, preBuildSteps, true);
-    return require('../utils/run-v3-build')(app, preBuild, app.preLockfile, app.configHash);
+    const preBuild = filterV3BuildSteps(buildV3Services, app, preRootSteps, preBuildSteps, true);
+    return runV3Build(app, preBuild, app.preLockfile, app.configHash);
   });
   app.events.on('post-start', 100, () => {
-    const postBuild = require('../utils/filter-v3-build-steps')(buildV3Services, app, postRootSteps, postBuildSteps);
-    return require('../utils/run-v3-build')(app, postBuild, app.postLockfile, app.configHash);
+    const postBuild = filterV3BuildSteps(buildV3Services, app, postRootSteps, postBuildSteps);
+    return runV3Build(app, postBuild, app.postLockfile, app.configHash);
   });
 };

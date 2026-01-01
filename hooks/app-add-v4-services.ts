@@ -1,11 +1,12 @@
-'use strict';
 
-const _ = require('lodash');
-const path = require('path');
+import _ from 'lodash';
+import path from 'path';
 
-module.exports = async (app, lando) => {
+import parseV4Services from '../utils/parse-v4-services.js';
+
+export default async (app, lando) => {
   // add parsed services to app object so we can use them downstream
-  app.v4.parsedConfig = _(require('../utils/parse-v4-services')(_.get(app, 'config.services', {})))
+  app.v4.parsedConfig = _(parseV4Services(_.get(app, 'config.services', {})))
     .filter(service => service.api === 4)
     .value();
   app.v4.servicesList = app.v4.parsedConfig.map(service => service.name);

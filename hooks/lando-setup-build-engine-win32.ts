@@ -1,13 +1,20 @@
-'use strict';
+import getAxios from '../utils/get-axios.js';
+import fs from 'fs';
+import getDockerDesktopBin from '../utils/get-docker-desktop-x.js';
+import os from 'os';
+import path from 'path';
+import semver from 'semver';
+import {color} from 'listr2';
+import {nanoid} from 'nanoid';
 
-const axios = require('../utils/get-axios')();
-const fs = require('fs');
-const getDockerDesktopBin = require('../utils/get-docker-desktop-x');
-const os = require('os');
-const path = require('path');
-const semver = require('semver');
-const {color} = require('listr2');
-const {nanoid} = require('nanoid');
+import debugShim from '../utils/debug-shim.js';
+import downloadX from '../utils/download-x.js';
+import getWslStatus from '../utils/get-wsl-status.js';
+import isGroupMember from '../utils/is-group-member.js';
+import runElevated from '../utils/run-elevated.js';
+import runPowershellScript from '../utils/run-powershell-script.js';
+
+const axios = getAxios();
 
 const buildIds = {
   '4.37.1': '178610',
@@ -66,7 +73,7 @@ const getEngineDownloadUrl = (id = '175267') => {
  * wrapper for docker-desktop install
  */
 const downloadDockerDesktop = (url, {debug, task, ctx}) => new Promise((resolve, reject) => {
-  const download = require('../utils/download-x')(url, {
+  const download = downloadX(url, {
     debug,
     dest: path.join(os.tmpdir(), `${nanoid()}.exe`),
   });
@@ -87,8 +94,8 @@ const downloadDockerDesktop = (url, {debug, task, ctx}) => new Promise((resolve,
   });
 });
 
-module.exports = async (lando, options) => {
-  const debug = require('../utils/debug-shim')(lando.log);
+export default async (lando, options) => {
+  const debug = debugShim(lando.log);
   debug.enabled = lando.debuggy;
 
   // if build engine is set to false allow it to be skipped
@@ -134,7 +141,7 @@ module.exports = async (lando, options) => {
     },
     requiresRestart: async () => {
       // if wsl is not installed then this requires a restart
-      const {installed, features} = await require('../utils/get-wsl-status')({debug});
+      const {installed, features} = await getWslStatus({debug});
       const restart = !installed || !features;
       debug('wsl installed=%o, features=%o, restart %o', installed, features, restart ? 'required' : 'not required');
       return restart;
@@ -151,7 +158,7 @@ module.exports = async (lando, options) => {
 
       // run install command
       task.title = `Installing build engine ${color.dim('(this may take a minute)')}`;
-      const result = await require('../utils/run-powershell-script')(script, args, {debug});
+      const result = await runPowershellScript(script, args, {debug});
       result.download = ctx.download;
 
       // finish up
@@ -170,13 +177,13 @@ module.exports = async (lando, options) => {
     comments: {
       'NOT INSTALLED': `Will add ${lando.config.username} to docker-users group`,
     },
-    hasRun: async () => require('../utils/is-group-member')('docker-users'),
+    hasRun: async () => isGroupMember('docker-users'),
     task: async (ctx, task) => {
       // check one last time incase this was added by a dependee or otherwise
-      if (require('../utils/is-group-member')('docker-users')) return {code: 0};
+      if (isGroupMember('docker-users')) return {code: 0};
 
       const command = ['net', 'localgroup', 'docker-users', lando.config.username, '/ADD'];
-      const {code, stdout, stderr} = await require('../utils/run-elevated')(command, {ignoreReturnCode: true, debug});
+      const {code, stdout, stderr} = await runElevated(command, {ignoreReturnCode: true, debug});
 
       // fail on anything except 1378 which is user already exists
       if (code !== 0 && (!stderr.includes('1378') || !stderr.includes('already a member'))) {

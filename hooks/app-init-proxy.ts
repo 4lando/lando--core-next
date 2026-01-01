@@ -1,10 +1,9 @@
-'use strict';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   if (lando.config.proxy === 'ON' && (!_.isEmpty(app.config.proxy) || !_.isEmpty(app.config.recipe))) {
     app.log.verbose('proxy settings detected.');
 

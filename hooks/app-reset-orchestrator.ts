@@ -1,13 +1,15 @@
-'use strict';
 
-module.exports = async (app, lando) => {
+import getComposeX from '../utils/get-compose-x.js';
+import setupEngine from '../utils/setup-engine.js';
+
+export default async (app, lando) => {
   // if we dont have an orchestrator bin yet then discover it
-  if (!lando.config.orchestratorBin) lando.config.orchestratorBin = require('../utils/get-compose-x')(lando.config);
+  if (!lando.config.orchestratorBin) lando.config.orchestratorBin = getComposeX(lando.config);
 
   // because the entire lando 3 runtime was made in a bygone era when we never dreamed of doing stuff like this
   // we need this workaround
   if (lando._bootstrapLevel >= 3 && !app.engine.composeInstalled) {
-    app.engine = require('../utils/setup-engine')(
+    app.engine = setupEngine(
       lando.config,
       lando.cache,
       lando.events,

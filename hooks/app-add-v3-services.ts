@@ -1,11 +1,12 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async (app, lando) => {
+import parseV3Services from '../utils/parse-v3-services.js';
+
+export default async (app, lando) => {
   // add parsed services to app object so we can use them downstream
   app.cachedInfo = _.get(lando.cache.get(app.composeCache), 'info', []);
-  app.parsedServices = require('../utils/parse-v3-services')(_.get(app, 'config.services', {}), app);
+  app.parsedServices = parseV3Services(_.get(app, 'config.services', {}), app);
   app.parsedV3Services = _(app.parsedServices).filter(service => service.api === 3).value();
   app.servicesList = app.parsedV3Services.map(service => service.name);
 

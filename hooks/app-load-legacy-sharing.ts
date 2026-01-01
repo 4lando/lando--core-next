@@ -1,9 +1,8 @@
-'use strict';
-
 // Modules
-const _ = require('lodash');
-const path = require('path');
-const toObject = require('../utils/to-object');
+import _ from 'lodash';
+import path from 'path';
+
+import toObject from '../utils/to-object.js';
 
 // Helper to get excludes
 const getExcludes = (data = [], inverse = false) => _(data)
@@ -52,7 +51,7 @@ const shouldExclude = (excludes = []) => {
   return !_.isEmpty(getExcludes(excludes));
 };
 
-module.exports = (app, lando) => {
+export default (app, lando) => {
   if (shouldExclude(_.get(app, 'config.excludes', []))) {
     // Get our excludes
     const excludes = getExcludes(app.config.excludes);

@@ -1,11 +1,12 @@
-'use strict';
+
+import debugShim from '../utils/debug-shim.js';
 
 // if we at engine level bootsrap level or above then autostart the engine if we need to
 // @NOTE: for some reason _SOMETIMES_ autostarting before lando start produces an error but we are just
 // not going to address it in favor of lando 4 stuff
-module.exports = async lando => {
+export default async lando => {
   if (lando._bootstrapLevel >= 3 && await lando.engine.daemon.isUp() === false) {
-    const debug = require('../utils/debug-shim')(lando.log);
+    const debug = debugShim(lando.log);
     const tasks = [{
       title: 'It seems Docker is not running, trying to start it up...',
       retry: {

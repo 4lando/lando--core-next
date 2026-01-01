@@ -1,33 +1,34 @@
-'use strict';
 
-const _ = require('lodash');
-const fs = require('fs');
-const glob = require('glob');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import glob from 'glob';
+import path from 'path';
+
+import readFile from '../utils/read-file.js';
 
 // Helper to get init config
 const getLegacyInitConfig = dirs => _(dirs)
   .filter(dir => fs.existsSync(dir))
   .flatMap(dir => glob.sync(path.join(dir, '*', 'init.js')))
-  .map(file => require(file))
+  .map(file => readFile(file))
   .value();
 
 // Helper to get init config
 const getInitConfig = dirs => _(dirs)
   .filter(dir => fs.existsSync(dir))
   .flatMap(dir => fs.readdirSync(dir).map(file => path.join(dir, file)))
-  .map(file => require(file))
+  .map(file => readFile(file))
   .value();
 
 // Helper to get init source config
 const getInitSourceConfig = dirs => _(dirs)
   .filter(dir => fs.existsSync(dir))
   .flatMap(dir => glob.sync(path.join(dir, '*.js')))
-  .map(file => require(file))
+  .map(file => readFile(file))
   .flatMap(source => source.sources)
   .value();
 
-module.exports = async lando => {
+export default async lando => {
   const legacyInits = getLegacyInitConfig(_.map(lando.config.plugins, 'recipes'));
   const inits = getInitConfig(_.map(lando.config.plugins, 'inits'));
 

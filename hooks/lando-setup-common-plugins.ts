@@ -1,8 +1,7 @@
-'use strict';
 
-const merge = require('lodash/merge');
+import merge from 'lodash/merge';
 
-module.exports = async (lando, options) => {
+export default async (lando, options) => {
   // if truthy then skip
   if (options.skipCommonPlugins || options.skipCommonPlugins === 'true' || options.skipCommonPlugins === '1') return;
 

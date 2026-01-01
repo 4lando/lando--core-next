@@ -1,8 +1,9 @@
-'use strict';
 
-const _ = require('lodash');
-const fs = require('fs');
-const getDockerDesktopBin = require('../utils/get-docker-desktop-x');
+import _ from 'lodash';
+import fs from 'fs';
+import getDockerDesktopBin from '../utils/get-docker-desktop-x.js';
+import debugShim from '../utils/debug-shim.js';
+import isGroupMember from '../utils/is-group-member.js';
 
 /**
  * Installs the Lando Development Certificate Authority (CA) on Windows systems.
@@ -12,8 +13,8 @@ const getDockerDesktopBin = require('../utils/get-docker-desktop-x');
  * @param {Object} options - Options passed to the setup command
  * @return {Promise<void>}
  */
-module.exports = async (lando, options) => {
-  const debug = require('../utils/debug-shim')(lando.log);
+export default async (lando, options) => {
+  const debug = debugShim(lando.log);
 
   // skip the installation of the network if set
   if (options.skipNetworking) return;
@@ -32,7 +33,7 @@ module.exports = async (lando, options) => {
     },
     skip: () => {
       if (!['linux', 'wsl'].includes(lando.config.os.landoPlatform)) return false;
-      return !require('../utils/is-group-member')('docker');
+      return !isGroupMember('docker');
     },
     hasRun: async () => {
       // if docker isnt even installed then this is easy
@@ -54,6 +55,7 @@ module.exports = async (lando, options) => {
     },
     task: async (ctx, task) => {
       // we reinstantiate instead of using lando.engine.daemon so we can ensure an up-to-date docker bin
+      // lib/daemon uses CommonJS - keep require until lib/ is converted
       const LandoDaemon = require('../lib/daemon');
       const daemon = new LandoDaemon(lando.cache, lando.events, undefined, lando.log);
 

@@ -1,6 +1,5 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 // Helpers to get scannable or not scannable services
 const getScannable = app => _.filter(app.info, service => {
@@ -11,7 +10,7 @@ const getUnscannable = app => _.filter(app.info, service => {
   return _.get(app, `config.services.${service.service}.scanner`, true) === false;
 });
 
-module.exports = async app => {
+export default async app => {
   // Message to let the user know it could take a bit
   console.log('Scanning to determine which services are ready... Please stand by...');
   // Filter out any services where the scanner might be disabled

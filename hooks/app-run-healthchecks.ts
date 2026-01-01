@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // new healthchecks
   if (_.get(lando, 'config.healthcheck', true) !== 'legacy') {
     const healthchecks = _.find(app.checks, {type: 'healthcheck-tasks'});

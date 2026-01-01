@@ -1,9 +1,9 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import toObject from '../utils/to-object.js';
 
-module.exports = async app => {
-  const info = require('../utils/to-object')(_.map(app.info, 'service'), {});
+export default async app => {
+  const info = toObject(_.map(app.info, 'service'), {});
   _.forEach(info, (value, key) => {
     info[key] = _.find(app.info, {service: key});
   });

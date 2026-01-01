@@ -1,8 +1,8 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import serviceNotRunningError from '../messages/service-not-running-error.js';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   const buildServices = _.get(app, 'opts.services', app.services)
   .filter(service => app.servicesList
   .includes(service));
@@ -22,7 +22,7 @@ module.exports = async (app, lando) => {
       },
     })
     .catch(err => {
-      app.addMessage(require('../messages/service-not-running-error')(service), err);
+      app.addMessage(serviceNotRunningError(service), err);
     });
   }));
 };

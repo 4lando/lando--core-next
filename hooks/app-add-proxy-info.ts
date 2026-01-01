@@ -1,7 +1,6 @@
-'use strict';
 
-const _ = require('lodash');
-const parseUrl = require('../utils/parse-proxy-url');
+import _ from 'lodash';
+import parseUrl from '../utils/parse-proxy-url.js';
 
 const hasCerts = (app, id) => {
   const info = app.info.find(service => service.service === id);
@@ -32,7 +31,7 @@ const parse2Info = (urls, ports, hasCerts = false) => _(urls)
   .value();
 
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // Only do things if the proxy is enabled
   if (lando.config.proxy === 'ON' && (!_.isEmpty(app.config.proxy) || !_.isEmpty(app.config.recipe))) {
     // Get last known ports

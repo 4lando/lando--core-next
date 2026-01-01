@@ -1,11 +1,11 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import updateBuiltAgainst from './app-update-built-against.js';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   if (!_.has(app.meta, 'builtAgainst')) {
     return lando.engine.list({project: app.project, all: true}).then(containers => {
-      if (!_.isEmpty(containers)) require('./app-update-built-against')(app, lando);
+      if (!_.isEmpty(containers)) updateBuiltAgainst(app, lando);
     });
   }
 };

@@ -1,8 +1,8 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import serviceNotRunningError from '../messages/service-not-running-error.js';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // scope app.nonRoot to v3 services only since this is not a workaround that v4 needs
   app.nonRoot = _.get(app, 'nonRoot', []).filter(service => app.servicesList.includes(service));
 
@@ -23,7 +23,7 @@ module.exports = async (app, lando) => {
         },
       })
       .catch(err => {
-        app.addMessage(require('../messages/service-not-running-error')(service), err);
+        app.addMessage(serviceNotRunningError(service), err);
       });
     }));
   }

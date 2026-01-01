@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // We assume the lando net exists at this point
   const landonet = lando.engine.getNetwork(lando.config.networkBridge);
   // List all our app containers

@@ -1,6 +1,9 @@
-'use strict';
 
-const path = require('path');
+import path from 'path';
+import debugShim from '../utils/debug-shim.js';
+import getFingerprint from '../utils/get-fingerprint.js';
+import getSystemCas from '../utils/get-system-cas.js';
+import runCommand from '../utils/run-command.js';
 
 /**
  * Installs the Lando Development Certificate Authority (CA) on macOS systems.
@@ -10,8 +13,8 @@ const path = require('path');
  * @param {Object} options - Options passed to the setup command
  * @return {Promise<void>}
  */
-module.exports = async (lando, options) => {
-  const debug = require('../utils/debug-shim')(lando.log);
+export default async (lando, options) => {
+  const debug = debugShim(lando.log);
 
   const {caCert} = lando.config;
 
@@ -29,11 +32,11 @@ module.exports = async (lando, options) => {
     },
     hasRun: async () => {
       try {
-        const fingerprint = require('../utils/get-fingerprint')(caCert);
+        const fingerprint = getFingerprint(caCert);
         debug('computed sha1 fingerprint %o for ca %o', fingerprint, caCert);
 
         // get fingerprints
-        const darwinfps = await require('../utils/get-system-cas')();
+        const darwinfps = await getSystemCas();
 
         return darwinfps.includes(fingerprint);
       } catch (error) {
@@ -48,7 +51,7 @@ module.exports = async (lando, options) => {
       task.title = 'Installing Lando Development Certificate Authority (CA)';
 
       // Assemble the installation command
-      const fingerprint = require('../utils/get-fingerprint')(caCert);
+      const fingerprint = getFingerprint(caCert);
       const script = path.join(lando.config.userConfRoot, 'scripts', 'install-system-ca-macos.sh');
       const args = ['--ca', caCert, '--fingerprint', fingerprint];
 
@@ -57,7 +60,7 @@ module.exports = async (lando, options) => {
       if (!lando.config.isInteractive) args.push('--non-interactive');
 
       // Run the installation command
-      const result = await require('../utils/run-command')(script, args, {debug});
+      const result = await runCommand(script, args, {debug});
 
       // Update task title on successful installation
       task.title = 'Installed Lando Development Certificate Authority (CA)';

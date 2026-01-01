@@ -1,14 +1,13 @@
-'use strict';
 
-const _ = require('lodash');
-const path = require('path');
-const url = require('url');
+import _ from 'lodash';
+import path from 'path';
+import url from 'url';
 
 const ports2Urls = (ports, secure = false, hostname = '127.0.0.1') => _(ports)
   .map(port => url.format({protocol: (secure) ? 'https' : 'http', hostname, port}))
   .value();
 
-module.exports = async lando => {
+export default async lando => {
   lando.log.verbose('building proxy config...');
   // Set some non dependent things
   const separator = lando.config.orchestratorSeparator;

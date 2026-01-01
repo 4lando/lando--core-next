@@ -1,6 +1,6 @@
-'use strict';
+import _ from 'lodash';
 
-const _ = require('lodash');
+import getExposedLocalhosts from '../utils/get-exposed-localhosts.js';
 
 // Helper to get http/https ports
 const getHttpPorts = data => {
@@ -16,7 +16,7 @@ const getHttpsPorts = data => {
   ]);
 };
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   app.log.verbose('attempting to find open services...');
   return app.engine.list({project: app.project})
     // Return running containers
@@ -26,7 +26,7 @@ module.exports = async (app, lando) => {
     // Inspect each and add new URLS
     .map(container => app.engine.scan(container))
     // Scan all the http ports
-    .map(data => require('../utils/get-exposed-localhosts')(
+    .map(data => getExposedLocalhosts(
       data,
       _.uniq([...getHttpPorts(data), ...getHttpsPorts(data)]),
       getHttpsPorts(data),
