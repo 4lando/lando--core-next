@@ -15,7 +15,7 @@ module.exports = async lando => {
   const taskFiles = _.flatten(pluginsWithTasks.map(plugin =>
     _(fs.readdirSync(plugin.tasks))
       .map(file => path.join(plugin.tasks, file))
-      .filter(filePath => _.endsWith(filePath, '.js'))
+      .filter(filePath => _.endsWith(filePath, '.js') || _.endsWith(filePath, '.ts'))
       .value(),
   ));
 

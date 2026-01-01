@@ -27,7 +27,7 @@ const Cli = require('../lib/cli');
 const getTasks = require('../utils/get-tasks');
 const Lando = require('../lib/lando');
 
-const id = path.basename(process.argv[1]);
+const id = path.basename(process.argv[1] ?? process.argv[0] ?? 'lando');
 
 // Unset DEBUG to prevent it from toggling debugging inside lando; use LANDO_DEBUG instead
 if (process.env.DEBUG) delete process.env.DEBUG;
