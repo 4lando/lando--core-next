@@ -1,7 +1,9 @@
-'use strict';
 
-const {EOL} = require('os');
-const {DefaultRenderer, ListrEventType} = require('listr2');
+import {EOL} from 'os';
+import {DefaultRenderer, ListrEventType} from 'listr2';
+import logUpdate from 'log-update';
+import truncate from 'cli-truncate';
+import wrap from 'wrap-ansi';
 
 class LandoRenderer extends DefaultRenderer {
   constructor(tasks, options, $renderHook) {
@@ -41,10 +43,6 @@ class LandoRenderer extends DefaultRenderer {
   }
 
   async render() {
-    const logUpdate = require('log-update');
-    const truncate = require('cli-truncate');
-    const wrap = require('wrap-ansi');
-
     this.updater = logUpdate.create(this.logger.process.stdout);
     this.truncate = truncate;
     this.wrap = wrap;
@@ -60,5 +58,5 @@ class LandoRenderer extends DefaultRenderer {
   }
 }
 
-module.exports = LandoRenderer;
+export default LandoRenderer;
 

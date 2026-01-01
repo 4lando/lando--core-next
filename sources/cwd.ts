@@ -1,6 +1,5 @@
-'use strict';
 
-module.exports = {
+export default {
   sources: [{
     name: 'cwd',
     label: 'current working directory',

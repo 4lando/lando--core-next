@@ -1,11 +1,10 @@
-'use strict';
 
-const {nanoid} = require('nanoid');
+import {nanoid} from 'nanoid';
 
 /*
  * Init Lamp
  */
-module.exports = {
+export default {
   name: 'none',
   defaults: {
     something: 'happening-here',

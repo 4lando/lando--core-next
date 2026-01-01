@@ -1,12 +1,11 @@
-'use strict';
 
-const _ = require('lodash');
-const {color} = require('listr2');
+import _ from 'lodash';
+import {color} from 'listr2';
 
 const {red, bold} = color;
 
 // checks to see if a setting is disabled
-module.exports = error => ({
+export default error => ({
   title: `Could not build image for "${_.get(error, 'context.id')}!"`,
   type: 'error',
   detail: [

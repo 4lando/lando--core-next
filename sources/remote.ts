@@ -1,10 +1,9 @@
-'use strict';
 
 // Modules
-const _ = require('lodash');
-const url = require('valid-url');
+import _ from 'lodash';
+import url from 'valid-url';
 
-module.exports = {
+export default {
   sources: [{
     name: 'remote',
     label: 'remote git repo or archive',

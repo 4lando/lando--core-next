@@ -1,9 +1,8 @@
-'use strict';
 
-const {color} = require('listr2');
+import {color} from 'listr2';
 
 // checks to see if a setting is disabled
-module.exports = ({
+export default ({
   title: 'You have a lot of keys!',
   type: 'tip',
   detail: [

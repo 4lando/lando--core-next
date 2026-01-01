@@ -1,9 +1,10 @@
-'use strict';
 
-const LandoRenderer = require('./lando');
+import LandoRenderer from './lando.js';
 
-const {EOL} = require('os');
-const {color, ListrTaskEventType} = require('listr2');
+import {EOL} from 'os';
+import {color, ListrTaskEventType} from 'listr2';
+import stripAnsi from 'strip-ansi';
+import range from 'lodash/range';
 
 const getDefaultColor = state => {
   switch (state) {
@@ -119,9 +120,9 @@ class DC2Renderer extends LandoRenderer {
   }
 
   getSpacer(data = '', max = 0) {
-    data = require('strip-ansi')(data);
+    data = stripAnsi(data);
     if (!max || max === 0 || !Number.isInteger(max)) return '  ';
-    return require('lodash/range')(max - data.trim().length + this.options.spacer).map(() => '').join(' ');
+    return range(max - data.trim().length + this.options.spacer).map(() => '').join(' ');
   }
 
   renderer(tasks, level) {
@@ -154,5 +155,5 @@ class DC2Renderer extends LandoRenderer {
   }
 }
 
-module.exports = DC2Renderer;
+export default DC2Renderer;
 

@@ -1,11 +1,10 @@
-'use strict';
 
 // Modules
-const _ = require('lodash');
-const fs = require('fs');
-const getOctokit = require('../utils/get-octokit');
-const os = require('os');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import getOctokit from '../utils/get-octokit.js';
+import os from 'os';
+import path from 'path';
 
 // Github
 const githubTokenCache = 'github.tokens';
@@ -97,7 +96,7 @@ const getAutoCompleteRepos = (answers, Promise, input = null) => {
   }
 };
 
-module.exports = {
+export default {
   sources: [{
     name: 'github',
     label: 'github',
