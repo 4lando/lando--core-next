@@ -1,9 +1,9 @@
-import getUser from './get-user.js';
+import getUserFn from './get-user.js';
 
 import _ from 'lodash';
 
 export default (services, app, rootSteps = [], buildSteps= [], prestart = false) => {
-  const getUser = getUser;
+  const getUser = getUserFn;
   // compute stdid based on compose major version
   const cstdio = _.get(app, '_config.orchestratorMV', 2) ? 'inherit' : ['inherit', 'pipe', 'pipe'];
   // Start collecting them

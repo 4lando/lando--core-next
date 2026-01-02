@@ -1,5 +1,3 @@
-import delay from 'delay';
-
 import _ from 'lodash';
 import {color} from 'listr2';
 

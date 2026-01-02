@@ -1,12 +1,12 @@
 import parsePackageName from './parse-package-name.js';
-import Plugin from '../components/plugin.js';
+import PluginClass from '../components/plugin.js';
 
 import os from 'os';
 
 // checks to see if a setting is disabled
 export default (plugin, {
   dir = os.tmpdir(),
-  Plugin = Plugin,
+  Plugin = PluginClass,
 } = {}) => {
   // parse into a full package
   const pkg = parsePackageName(plugin);

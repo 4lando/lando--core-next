@@ -1,10 +1,16 @@
-'use strict';
+import _ from 'lodash';
+import {createRequire} from 'module';
+import fs from 'fs';
+import inquirer from 'inquirer';
+import inquirerAutocomplete from 'inquirer-autocomplete-prompt';
+import os from 'os';
+import util from 'util';
+import {ux} from '@oclif/core';
+import getObjectKeys from '../utils/get-object-keys.js';
+import prettify from '../utils/prettify.js';
+import Table from './table.js';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const os = require('os');
-const util = require('util');
+const require = createRequire(import.meta.url);
 
 // Const
 const formats = ['default', 'json', 'table'];
@@ -28,7 +34,7 @@ const formatOpts = {
 /*
  * Format data
  */
-exports.formatData = (data, {path = '', format = 'default', filter = []} = {}, opts = {}) => {
+export const formatData = (data, {path = '', format = 'default', filter = []} = {}, opts = {}) => {
   // Attempt to filter if we can
   if (_.isArray(data) && !_.isEmpty(filter)) {
     const filters = _(filter).map(f => f.split('=')).fromPairs().value();
@@ -42,11 +48,10 @@ exports.formatData = (data, {path = '', format = 'default', filter = []} = {}, o
     case 'json':
       return JSON.stringify(data);
     case 'otable': {
-      const ux = require('@oclif/core').ux;
       // rows
-      const rows = require('../utils/get-object-keys')(data, {expandArrays: false}).map(key => ({key, value: _.get(data, key)}));
+      const rows = getObjectKeys(data, {expandArrays: false}).map(key => ({key, value: _.get(data, key)}));
       // columes
-      const columns = {key: {}, value: {get: row => require('../utils/prettify')(row.value)}};
+      const columns = {key: {}, value: {get: row => prettify(row.value)}};
 
       // in order to keep this API consistent with return we need to hack console.log
       // so we can get the table output in a string
@@ -62,7 +67,6 @@ exports.formatData = (data, {path = '', format = 'default', filter = []} = {}, o
       return output;
     }
     case 'table': {
-      const Table = require('./table');
       if (!_.isArray(data)) {
         const table = new Table(data, opts);
         return table.toString();
@@ -86,12 +90,12 @@ exports.formatData = (data, {path = '', format = 'default', filter = []} = {}, o
 /*
  * FormatOptios
  */
-exports.formatOptions = (omit = []) => _.omit(formatOpts, omit);
+export const formatOptions = (omit = []) => _.omit(formatOpts, omit);
 
 /*
  * Helper to get interactive options
  */
-exports.getInteractive = (options, argv) => _(options)
+export const getInteractive = (options, argv) => _(options)
   .map((option, name) => _.merge({}, {name}, {option}))
   .filter(option => !_.isEmpty(_.get(option, 'option.interactive', {})))
   .map(option => _.merge({}, {name: option.name, weight: 0}, option.option.interactive))
@@ -109,11 +113,10 @@ exports.getInteractive = (options, argv) => _(options)
 /*
  * Helper to prompt the user if needed
  */
-exports.handleInteractive = (inquiry, argv, command, lando, file) => lando.Promise.try(() => {
+export const handleInteractive = (inquiry, argv, command, lando, file) => lando.Promise.try(() => {
   if (_.isEmpty(inquiry)) return {};
   else {
-    const inquirer = require('inquirer');
-    inquirer.registerPrompt('autocomplete', require('inquirer-autocomplete-prompt'));
+    inquirer.registerPrompt('autocomplete', inquirerAutocomplete);
 
     // mix in the full task object so we can load in functions and that sort of thing
     if (file && fs.existsSync(file)) {
@@ -138,7 +141,7 @@ exports.handleInteractive = (inquiry, argv, command, lando, file) => lando.Promi
 
       const task = _.find(tooling, {command}) || _.find(tooling, {id: command});
 
-      inquiry = exports.getInteractive(task.options, argv);
+      inquiry = getInteractive(task.options, argv);
       return inquirer.prompt(_.sortBy(inquiry, 'weight'));
     }
 
@@ -148,13 +151,13 @@ exports.handleInteractive = (inquiry, argv, command, lando, file) => lando.Promi
       // NOTE: Not exactly clear on why app here gets conflated with the app returned from lando.getApp
       const app = _.cloneDeep(lando.getApp(argv._app.root));
       return app.init().then(() => {
-        inquiry = exports.getInteractive(_.find(app.tasks.concat(lando.tasks), {command: command}).options, argv);
+        inquiry = getInteractive(_.find(app.tasks.concat(lando.tasks), {command: command}).options, argv);
         return inquirer.prompt(_.sortBy(inquiry, 'weight'));
       });
 
     // Otherwise just run
     } else {
-      inquiry = exports.getInteractive(_.find(lando.tasks, {command: command}).options, argv);
+      inquiry = getInteractive(_.find(lando.tasks, {command: command}).options, argv);
       return inquirer.prompt(_.sortBy(inquiry, 'weight'));
     }
   }
@@ -163,9 +166,17 @@ exports.handleInteractive = (inquiry, argv, command, lando, file) => lando.Promi
 /*
  * Helper to sort options
  */
-exports.sortOptions = options => _(options)
+export const sortOptions = options => _(options)
   .keys()
   .sortBy()
   .map(key => [key, options[key]])
   .fromPairs()
   .value();
+
+export default {
+  formatData,
+  formatOptions,
+  getInteractive,
+  handleInteractive,
+  sortOptions,
+};

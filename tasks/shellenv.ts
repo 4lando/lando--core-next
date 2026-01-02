@@ -1,9 +1,7 @@
-'use strict';
+import os from 'os';
+import {color} from 'listr2';
 
-const os = require('os');
-const {color} = require('listr2');
-
-module.exports = lando => {
+export default lando => {
   return {
     command: 'shellenv',
     usage: '$0 shellenv [--check] [--shell <shell>]',

@@ -1,12 +1,9 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
+import _ from 'lodash';
 
 // Other things
 const bashme = ['/bin/sh', '-c', 'if ! type bash > /dev/null; then sh; else bash; fi'];
 
-module.exports = (lando, app) => ({
+export default (lando, app) => ({
   command: 'ssh',
   usage: '$0 ssh [--command <command>] [--service <service>] [--user <user>]',
   examples: [

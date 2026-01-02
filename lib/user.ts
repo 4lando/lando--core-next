@@ -1,4 +1,6 @@
-'use strict';
+import getUidUtil from '../utils/get-uid.js';
+import getGidUtil from '../utils/get-gid.js';
+import getUsernameUtil from '../utils/get-username.js';
 
 /**
  * Returns the id of the current user or username.
@@ -13,7 +15,7 @@
  * // Get the id of the user.
  * const userId = lando.user.getUid();
  */
-exports.getUid = () => require('../utils/get-uid')();
+export const getUid = () => getUidUtil();
 
 /**
 * Returns the gid of the current user or username.
@@ -28,7 +30,7 @@ exports.getUid = () => require('../utils/get-uid')();
  * // Get the id of the user.
  * const groupId = lando.user.getGid();
  */
-exports.getGid = () => require('../utils/get-gid')();
+export const getGid = () => getGidUtil();
 
 /**
 * Returns the username of the current user
@@ -43,4 +45,7 @@ exports.getGid = () => require('../utils/get-gid')();
  * // Get the id of the user.
  * const groupId = lando.user.getGid();
  */
-exports.getUsername = () => require('../utils/get-username')();
+export const getUsername = () => getUsernameUtil();
+
+// Default export for backward compatibility
+export default {getUid, getGid, getUsername};

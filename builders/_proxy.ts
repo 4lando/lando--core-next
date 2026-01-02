@@ -1,7 +1,4 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
+import _ from 'lodash';
 
 /*
  * Helper to get core proxy service
@@ -56,7 +53,7 @@ const getPorts = (http, https, {proxyBindAddress = '127.0.0.1'} = {}) => ({
 /*
  * Build traefix proxis
  */
-module.exports = {
+export default {
   name: '_proxy',
   parent: '_landoutil',
   config: {

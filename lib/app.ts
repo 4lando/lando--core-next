@@ -1,11 +1,29 @@
-'use strict';
+import _ from 'lodash';
+import hasher from 'object-hash';
+import path from 'path';
+import Promise from './promise.js';
+import * as utils from './utils.js';
 
-// Modules
-const _ = require('lodash');
-const hasher = require('object-hash');
-const path = require('path');
-const Promise = require('./promise');
-const utils = require('./utils');
+// Core lib imports
+import AsyncEvents from './events.js';
+import Log from './logger.js';
+import Shell from './shell.js';
+
+// Utils imports
+import dockerComposify from '../utils/docker-composify.js';
+import dumpComposeData from '../utils/dump-compose-data.js';
+import getAppGlobals from '../utils/get-app-globals.js';
+import getAppInfoDefaults from '../utils/get-app-info-defaults.js';
+import getAppMounts from '../utils/get-app-mounts.js';
+import getAppServices from '../utils/get-app-services.js';
+import getServiceApis from '../utils/get-service-apis.js';
+import loadComposeFiles from '../utils/load-compose-files.js';
+import normalizeFiles from '../utils/normalize-files.js';
+import runTasks from '../utils/run-tasks.js';
+import scan from '../utils/legacy-scan.js';
+import setupEngine from '../utils/setup-engine.js';
+import setupMetrics from '../utils/setup-metrics.js';
+import slugify from '../utils/slugify.js';
 
 /*
  * Helper to init and then report
@@ -42,7 +60,7 @@ const loadPlugins = async (app, lando) => {
  * @param {Object} [lando={}] A Lando instance
  * @return {App} An App instance
  */
-module.exports = class App {
+export default class App {
   name: string;
   project: string;
   id: string;
@@ -90,19 +108,14 @@ module.exports = class App {
   v4: any;
 
   constructor(name: string, config: any, lando: any = {}) {
-    const AsyncEvents = require('./events');
-    const Log = require('./logger');
-    const scan = require('../utils/legacy-scan');
-    const Shell = require('./shell');
-
     /**
      * The apps name
      *
      * @since 3.0.0
      * @alias app.name
      */
-    this.name = require('../utils/slugify')(name);
-    this.project = require('../utils/docker-composify')(this.name);
+    this.name = slugify(name);
+    this.project = dockerComposify(this.name);
     this._serviceApi = 3;
     this._config = lando.config;
     this._defaultService = 'appserver';
@@ -150,7 +163,7 @@ module.exports = class App {
      */
     this.log = new Log(_.merge({}, lando.config, {logName: this.name}));
     this.shell = new Shell(this.log);
-    this.engine = require('../utils/setup-engine')(
+    this.engine = setupEngine(
       lando.config,
       lando.cache,
       lando.events,
@@ -159,7 +172,7 @@ module.exports = class App {
       lando.config.instance,
     );
 
-    this.metrics = require('../utils/setup-metrics')(this.log, lando.config);
+    this.metrics = setupMetrics(this.log, lando.config);
     this.Promise = lando.Promise;
     this.events = new AsyncEvents(this.log);
     this.scanUrls = scan(this.log);
@@ -319,10 +332,10 @@ module.exports = class App {
     // We should only need to initialize once, if we have just go right to app ready
     if (this.initialized) return this.events.emit('ready', this);
     // Get compose data if we have any, otherwise set to []
-    const composeFiles = require('../utils/load-compose-files')(_.get(this, 'config.compose', []), this.root);
+    const composeFiles = loadComposeFiles(_.get(this, 'config.compose', []), this.root);
     this.composeData = [new this.ComposeService('compose', {}, ...composeFiles)];
     // Validate and set env files
-    this.envFiles = require('../utils/normalize-files')(_.get(this, 'config.env_file', []), this.root);
+    this.envFiles = normalizeFiles(_.get(this, 'config.env_file', []), this.root);
     // Log some things
     this.log.verbose('initiatilizing app at %s...', this.root);
 
@@ -343,12 +356,12 @@ module.exports = class App {
     // Actually assemble this thing so its ready for that engine
     .then(() => {
       // Get all the services
-      this.services = require('../utils/get-app-services')(this.composeData);
+      this.services = getAppServices(this.composeData);
       // add double properties because we have weird differnces between cli getApp and core getApp
       this.allServices = this.services;
-      this.sapis = require('../utils/get-service-apis')(this);
+      this.sapis = getServiceApis(this);
       // Merge whatever we have thus far together
-      this.info = require('../utils/get-app-info-defaults')(this);
+      this.info = getAppInfoDefaults(this);
       // finally just make a list of containers
       const separator = _.get(this, '_config.orchestratorSeparator', '_');
       this.containers = _(this.info)
@@ -373,11 +386,11 @@ module.exports = class App {
     // Finish up
     .then(() => {
       // Front load our app mounts
-      this.add(new this.ComposeService('mounts', {}, {services: require('../utils/get-app-mounts')(this)}), true);
+      this.add(new this.ComposeService('mounts', {}, {services: getAppMounts(this)}), true);
       // Then front load our globals
-      this.add(new this.ComposeService('globals', {}, {services: require('../utils/get-app-globals')(this)}), true);
+      this.add(new this.ComposeService('globals', {}, {services: getAppGlobals(this)}), true);
       // Take the big dump of all our compose stuff
-      this.compose = require('../utils/dump-compose-data')(this.composeData, this._dir);
+      this.compose = dumpComposeData(this.composeData, this._dir);
 
       // group the services by their api
       this.serviceGroups = _.groupBy(this.info, 'api');
@@ -522,7 +535,7 @@ module.exports = class App {
     // @NOTE: this is mostly just to test to make sure the default renderer works in GHA
     if (process.env.LANDO_RENDERER_FORCE === '1') options.rendererForce = true;
 
-    return await require('../utils/run-tasks')(tasks, _.merge(defaults, options));
+    return await runTasks(tasks, _.merge(defaults, options));
   }
 
   /**
@@ -658,4 +671,4 @@ module.exports = class App {
     .then(() => this.events.emit('post-uninstall'))
     .then(() => this.log.info('uninstalled app.'));
   }
-};
+}

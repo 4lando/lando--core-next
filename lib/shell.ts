@@ -1,14 +1,14 @@
-'use strict';
+import _ from 'lodash';
+import child from 'child_process';
+import Log from './logger.js';
+import path from 'path';
+import parse from 'yargs-parser';
+import os from 'os';
+import Promise from './promise.js';
+import through from 'through';
 
-const _ = require('lodash');
-const child = require('child_process');
-const Log = require('./logger');
-const path = require('path');
-const parse = require('yargs-parser');
-const os = require('os');
-const Promise = require('./promise');
-const stdoutStream = require('through');
-const stderrStream = require('through');
+const stdoutStream = through;
+const stderrStream = through;
 
 /*
  * Parse a command into metadata: bin, cmd, and args
@@ -64,8 +64,7 @@ const spawn = (run, {stdio}, silent = false, shell, stdout = '', stderr = '') =>
   });
 };
 
-// We make this module into a function so we can pass in a logger
-module.exports = class Shell {
+export default class Shell {
   log: any;
   running: any[];
   stdout: any;
@@ -185,4 +184,4 @@ module.exports = class Shell {
   which(cmd) {
     return typeof Bun !== 'undefined' ? Bun.which(cmd) : null;
   }
-};
+}

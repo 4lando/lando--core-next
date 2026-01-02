@@ -1,13 +1,10 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const jsonfile = require('jsonfile');
-const Log = require('./logger');
-const NodeCache = require('node-cache');
-const os = require('os');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import jsonfile from 'jsonfile';
+import Log from './logger.js';
+import NodeCache from 'node-cache';
+import os from 'os';
+import path from 'path';
 
 /*
  * Creates a new Cache instance.
@@ -135,7 +132,4 @@ Cache.prototype.__set = NodeCache.prototype.set;
  */
 Cache.prototype.__del = NodeCache.prototype.del;
 
-/*
- * Return the class
- */
-module.exports = Cache;
+export default Cache;

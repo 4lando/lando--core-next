@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = lando => {
+export default lando => {
   // the default install directory
   const {dir} = lando.config.pluginDirs.find(dir => dir.type === require('../utils/get-plugin-type')());
 

@@ -4,7 +4,7 @@ import _debug from 'debug';
 import Log from '../lib/logger.js';
 
 // adds required methods to ensure the lando v3 debugger can be injected into v4 things
-export default (log, {namespace} = {}) => {
+const debugShim = (log, {namespace} = {}) => {
   const fresh = new Log({...log.shim, extra: namespace});
 
   // add sanitization
@@ -49,7 +49,9 @@ export default (log, {namespace} = {}) => {
   debug.contract = () => debug;
   debug.replace = () => debug;
   // extend should just return a new logger
-  debug.extend = name => module.exports(log, {namespace: name});
+  debug.extend = name => debugShim(log, {namespace: name});
 
   return debug;
 };
+
+export default debugShim;

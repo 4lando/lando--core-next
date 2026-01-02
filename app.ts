@@ -1,10 +1,6 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
-const path = require('path');
-
-const {nanoid} = require('nanoid');
+import _ from 'lodash';
+import path from 'path';
+import {nanoid} from 'nanoid';
 
 // Helper to set the LANDO_LOAD_KEYS var
 const getKeys = (keys = true) => {
@@ -12,7 +8,7 @@ const getKeys = (keys = true) => {
   return keys.toString();
 };
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // Compose cache key
   app.composeCache = `${app.name}.compose.cache`;
   // recipe cache key

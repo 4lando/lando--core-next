@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = lando => {
+export default lando => {
   return {
     command: 'plugin-login',
     usage: '$0 plugin-login [--username <username>] [--password <password>] [--registry <registry>]',

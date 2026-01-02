@@ -1,10 +1,9 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
-const Dockerode = require('dockerode');
-const fs = require('fs');
-const Promise = require('./promise');
+import _ from 'lodash';
+import Dockerode from 'dockerode';
+import fs from 'fs';
+import Promise from './promise.js';
+import toLandoContainer from '../utils/to-lando-container.js';
+import dockerComposify from '../utils/docker-composify.js';
 
 /*
  * Helper for direct container opts
@@ -21,7 +20,7 @@ const srcExists = (files = []) => _.reduce(files, (exists, file) => fs.existsSyn
 /*
  * Creates a new yaml instance.
  */
-module.exports = class Landerode extends Dockerode {
+export default class Landerode extends Dockerode {
   id: string;
 
   constructor(opts: any = {}, id = 'lando', promise = Promise) {
@@ -72,9 +71,6 @@ module.exports = class Landerode extends Dockerode {
    * Returns a list of Lando containers
    */
   list(options = {}, separator = '_') {
-    const toLandoContainer = require('../utils/to-lando-container');
-    const dockerComposify = require('../utils/docker-composify');
-
     return this.listContainers(options)
     .then(containers => {
       return containers
@@ -130,4 +126,4 @@ module.exports = class Landerode extends Dockerode {
   stop(cid, opts = {}) {
     return containerOpt(this.getContainer(cid), 'stop', 'Error stopping container: %j', opts);
   }
-};
+}

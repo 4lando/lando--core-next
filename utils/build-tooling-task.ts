@@ -1,4 +1,4 @@
-import getToolingDefaults from './get-tooling-defaults.js';
+import getToolingDefaultsFn from './get-tooling-defaults.js';
 import buildDockerExec from './build-docker-exec.js';
 import buildToolingRunner from './build-tooling-runner.js';
 import parseToolingConfig from './parse-tooling-config.js';
@@ -7,7 +7,7 @@ import _ from 'lodash';
 
 export default (config, injected) => {
   // Get our defaults and such
-  const getToolingDefaults = getToolingDefaults;
+  const getToolingDefaults = getToolingDefaultsFn;
   const {name, app, appMount, cmd, describe, dir, env, options, service, stdio, user} = getToolingDefaults(config);
 
   // add debug stuff if debuggy

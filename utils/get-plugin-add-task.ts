@@ -1,4 +1,4 @@
-import Plugin from '../components/plugin.js';
+import PluginClass from '../components/plugin.js';
 
 import os from 'os';
 import path from 'path';
@@ -6,7 +6,7 @@ import path from 'path';
 // checks to see if a setting is disabled
 export default (plugin, {
   dir = os.tmpdir(),
-  Plugin = Plugin,
+  Plugin = PluginClass,
 } = {}) => {
   return {
     title: `Adding ${plugin}`,

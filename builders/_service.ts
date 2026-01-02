@@ -1,12 +1,9 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
+import _ from 'lodash';
 
 /*
  * The lowest level lando service
  */
-module.exports = {
+export default {
   name: '_service',
   parent: '_lando',
   builder: parent => class LandoService extends parent {

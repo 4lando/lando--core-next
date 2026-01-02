@@ -1,10 +1,8 @@
-'use strict';
+import groupBy from 'lodash/groupBy';
+import merge from 'lodash/merge';
+import sortBy from 'lodash/sortBy';
 
-const groupBy = require('lodash/groupBy');
-const merge = require('lodash/merge');
-const sortBy = require('lodash/sortBy');
-
-const {color, figures} = require('listr2');
+import {color, figures} from 'listr2';
 
 const defaultStatus = {
   'CANNOT INSTALL': 0,
@@ -63,7 +61,7 @@ const getStatusTable = items => ({
   },
 });
 
-module.exports = lando => {
+export default lando => {
   // get defaults from the lando config
   const defaults = lando.config.setup;
   // determine label for build engine

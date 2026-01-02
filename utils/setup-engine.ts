@@ -4,15 +4,11 @@ import Engine from '../lib/engine.js';
 import dockerCompose from '../lib/compose.js';
 
 const dc = (shell, bin, cmd, {compose, project, opts = {}}) => {
-  const dockerCompose = dockerCompose;
   const run = dockerCompose[cmd](compose, project, opts);
   return shell.sh([bin].concat(run.cmd), run.opts);
 };
 
 export default (config, cache, events, log, shell, id) => {
-  const Engine = Engine;
-  const Landerode = Landerode;
-  const LandoDaemon = LandoDaemon;
   // get enginey stuff
   const {orchestratorBin, orchestratorVersion, dockerBin, engineConfig} = config;
   const docker = new Landerode(engineConfig, id);

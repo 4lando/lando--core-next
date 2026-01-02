@@ -1,9 +1,7 @@
-'use strict';
+import groupBy from 'lodash/groupBy';
+import merge from 'lodash/merge';
 
-const groupBy = require('lodash/groupBy');
-const merge = require('lodash/merge');
-
-const {color, figures} = require('listr2');
+import {color, figures} from 'listr2';
 
 const defaultStatus = {
   'NO UPDATE': 0,
@@ -75,7 +73,7 @@ const getStatusTable = items => ({
   },
 });
 
-module.exports = lando => {
+export default lando => {
   // default options
   const options = {
     'yes': {

@@ -1,8 +1,11 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+import getInitRunner from '../utils/build-init-runner';
+import getInitRunnerDefaults from '../utils/get-init-runner-defaults';
+import runInit from '../utils/run-init';
+import runSetup from '../hooks/lando-run-setup';
 
 // Helper for init display
 const showInit = (lando, options) => {
@@ -36,24 +39,23 @@ const runBuild = (lando, options = {}, steps = []) => lando.Promise.each(steps, 
     return step.func(options, lando);
   } else {
     step.cmd = (_.isFunction(step.cmd)) ? step.cmd(options) : step.cmd;
-    return require('../utils/run-init')(
+    return runInit(
       lando,
-      require('../utils/build-init-runner')(_.merge(
+      getInitRunner(_.merge(
         {},
-        require('../utils/get-init-runner-defaults')(lando, options),
+        getInitRunnerDefaults(lando, options),
         step,
       )),
     );
   }
 });
 
-module.exports = lando => {
-  // helpers
-  const getInitOptions = require('../utils/get-init-options');
-  const getInitBaseOpts = require('../utils/get-init-base-opts');
-  const getInitOveridesOpts = require('../utils/get-init-override-opts');
-  const parseInitOptions = require('../utils/parse-init-options');
+import getInitOptions from '../utils/get-init-options';
+import getInitBaseOpts from '../utils/get-init-base-opts';
+import getInitOveridesOpts from '../utils/get-init-override-opts';
+import parseInitOptions from '../utils/parse-init-options';
 
+export default lando => {
   // Stuffz we need
   const inits = lando.config.inits;
   const sources = lando.config.sources;
@@ -91,7 +93,7 @@ module.exports = lando => {
       const configStep = (_.has(recipeConfig, 'build')) ? recipeConfig.build : () => {};
 
       // run setup if we need to
-      await require('../hooks/lando-run-setup')(lando);
+      await runSetup(lando);
 
       // Pre init event and run build steps
       // @NOTE: source build steps are designed to grab code from somewhere

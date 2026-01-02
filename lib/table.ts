@@ -1,10 +1,9 @@
-'use strict';
+import _ from 'lodash';
+import yargonaut from 'yargonaut';
+import OldTable from 'cli-table3';
+import util from 'util';
 
-// Modules
-const _ = require('lodash');
-const chalk = require('yargonaut').chalk();
-const OldTable = require('cli-table3');
-const util = require('util');
+const chalk = yargonaut.chalk();
 
 // Const
 const noBorderOpts = {
@@ -27,7 +26,7 @@ const noBorderOpts = {
   },
 };
 
-module.exports = class Table extends OldTable {
+export default class Table extends OldTable {
   constructor(data, {border = true, keyColor = 'cyan', joiner = '\n', sort = false} = {}, opts = {}) {
     // Inherit the table
     const tableDefaults = border ? {} : noBorderOpts;
@@ -54,4 +53,4 @@ module.exports = class Table extends OldTable {
       this.push([(chalk[this.keyColor](_.toUpper(key))), data[key]]);
     });
   }
-};
+}

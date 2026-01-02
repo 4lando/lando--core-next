@@ -1,11 +1,10 @@
-'use strict';
+import _ from 'lodash';
+import yargonaut from 'yargonaut';
+import figures from 'figures';
+import os from 'os';
 
-// Modules
-const _ = require('lodash');
-const niceFont = require('yargonaut').asFont;
-const chalk = require('yargonaut').chalk();
-const figures = require('figures');
-const os = require('os');
+const niceFont = yargonaut.asFont;
+const chalk = yargonaut.chalk();
 
 /*
  * Helper to stylize code or a command
@@ -80,7 +79,7 @@ const statusMessage = ({title, type = 'info', detail = [], command, url} = {}) =
 /*
  * Helper to show that an app has started
  */
-exports.appDestroy = ({name, phase = 'pre'} = {}) => {
+export const appDestroy = ({name, phase = 'pre'} = {}) => {
   switch (phase) {
     case 'abort':
       return chalk.yellow('DESTRUCTION AVERTED!');
@@ -96,49 +95,49 @@ exports.appDestroy = ({name, phase = 'pre'} = {}) => {
 /*
  * Helper to show that an app has restarted
  */
-exports.appRebuild = ({name, phase = 'pre', messages = []} = {}) => {
+export const appRebuild = ({name, phase = 'pre', messages = []} = {}) => {
   switch (phase) {
     case 'abort':
       return chalk.yellow('REBUILD ABORTED!');
     case 'error':
-      return exports.appStart({name, phase: 'error', messages});
+      return appStart({name, phase: 'error', messages});
     case 'pre':
       return chalk.cyan('Rising anew like a fire phoenix from the ashes! Rebuilding app...');
     case 'post':
-      return exports.appStart({name, phase: 'post'});
+      return appStart({name, phase: 'post'});
     case 'post_legacy':
-      return exports.appStart({name, phase: 'post_legacy'});
+      return appStart({name, phase: 'post_legacy'});
     case 'report':
-      return exports.appStart({name, phase: 'report', messages});
+      return appStart({name, phase: 'report', messages});
     case 'report_legacy':
-      return exports.appStart({name, phase: 'report_legacy', messages});
+      return appStart({name, phase: 'report_legacy', messages});
   }
 };
 
 /*
  * Helper to show that an app has restarted
  */
-exports.appRestart = ({name, phase = 'pre', messages = []} = {}) => {
+export const appRestart = ({name, phase = 'pre', messages = []} = {}) => {
   switch (phase) {
     case 'error':
-      return exports.appStart({name, phase: 'error', messages});
+      return appStart({name, phase: 'error', messages});
     case 'pre':
       return chalk.cyan('Stopping and restarting your app...Shiny!');
     case 'post':
-      return exports.appStart({name, phase: 'post'});
+      return appStart({name, phase: 'post'});
     case 'post_legacy':
-      return exports.appStart({name, phase: 'post_legacy'});
+      return appStart({name, phase: 'post_legacy'});
     case 'report':
-      return exports.appStart({name, phase: 'report', messages});
+      return appStart({name, phase: 'report', messages});
     case 'report_legacy':
-      return exports.appStart({name, phase: 'report_legacy', messages});
+      return appStart({name, phase: 'report_legacy', messages});
   }
 };
 
 /*
  * Helper to show that an app has started
  */
-exports.appStart = ({name, phase = 'pre', messages = []} = {}) => {
+export const appStart = ({name, phase = 'pre', messages = []} = {}) => {
   switch (phase) {
     case 'error':
       return [
@@ -228,7 +227,7 @@ exports.appStart = ({name, phase = 'pre', messages = []} = {}) => {
 /*
  * Helper to show that an app has stopped
  */
-exports.appStop = ({name, phase = 'pre'} = {}) => {
+export const appStop = ({name, phase = 'pre'} = {}) => {
   switch (phase) {
     case 'pre':
       return chalk.cyan(`This party's over :( Stopping app ${italicize(name)}`);
@@ -240,7 +239,7 @@ exports.appStop = ({name, phase = 'pre'} = {}) => {
 /*
  * Helper to show that a first error has occurred
  */
-exports.crash = () => [
+export const crash = () => [
   '',
   chalk.red(niceFont('CRASH!!!', 'ANSI Shadow')),
   '',
@@ -253,7 +252,7 @@ exports.crash = () => [
 /*
  * Helper to show status of experimental toggle
  */
-exports.experimental = (on = false) => {
+export const experimental = (on = false) => {
   switch (on) {
     case true:
       return [
@@ -275,7 +274,7 @@ exports.experimental = (on = false) => {
 /*
  * Helper to show init header
  */
-exports.init = () => [
+export const init = () => [
   '',
   chalk.green(niceFont('Now we\'re', 'Small Slant')),
   chalk.magenta(niceFont('COOKING WITH FIRE!', 'Small Slant')),
@@ -291,7 +290,7 @@ exports.init = () => [
 /*
  * Helper to show new content
  */
-exports.newContent = (type = 'guide') => [
+export const newContent = (type = 'guide') => [
   '',
   chalk.green(niceFont(`New ${type} has been...`, 'Small Slant')),
   chalk.magenta(niceFont('Created!', 'Small Slant')),
@@ -302,7 +301,7 @@ exports.newContent = (type = 'guide') => [
   '',
 ].join(os.EOL);
 
-exports.setupHeader = (bengine = process.landoPlatform === 'linux' || process.platform === 'linux' ? 'Engine' : 'Desktop') => `
+export const setupHeader = (bengine = process.landoPlatform === 'linux' || process.platform === 'linux' ? 'Engine' : 'Desktop') => `
 ${chalk.magenta(niceFont('Lando Setup!', 'Small Slant'))}
 
 ${chalk.bold('lando setup')} is a hidden convenience command to help you satisify the
@@ -324,7 +323,7 @@ or visit ${chalk.magenta('https://docs.lando.dev/cli/setup.html')}
 /*
  * Helper to show NO DOCKER error message
  */
-exports.needsSetup = () => `
+export const needsSetup = () => `
 ${chalk.red(niceFont('U Need Setup!', 'Small Slant'))}
 
 Lando encountered a setup error and does not have all the dependencies it needs to run!
@@ -341,7 +340,7 @@ ${chalk.magenta(`${figures.squareSmallFilled} GitHub - https://github.com/lando/
 /*
  * Helper to show status of secret toggle
  */
-exports.poweroff = ({phase = 'pre'} = {}) => {
+export const poweroff = ({phase = 'pre'} = {}) => {
   switch (phase) {
     case 'pre':
       return [
@@ -358,21 +357,21 @@ exports.poweroff = ({phase = 'pre'} = {}) => {
 /*
  * Helper to show status of secret toggle
  */
-exports.print = ({text, color = 'white'} = {}) => {
+export const print = ({text, color = 'white'} = {}) => {
   return chalk[color](text);
 };
 
 /*
  * Helper to show status of secret toggle
  */
-exports.printFont = ({text, color = 'magenta', font = 'Small Slant'} = {}) => {
+export const printFont = ({text, color = 'magenta', font = 'Small Slant'} = {}) => {
   return chalk[color](niceFont(text, font));
 };
 
 /*
  * Helper to show status of release channel
  */
-exports.releaseChannel = (channel = 'stable') => {
+export const releaseChannel = (channel = 'stable') => {
   switch (channel) {
     case 'edge':
       return [
@@ -404,7 +403,7 @@ exports.releaseChannel = (channel = 'stable') => {
 /*
  * Helper to show that setup is running
  */
-exports.runningSetup = () => `
+export const runningSetup = () => `
 ${chalk.yellow(niceFont('Running Setup!', 'Small Slant'))}
 
 Lando has detected that it does not have ${chalk.bold('critical dependencies')} it needs to run.
@@ -418,7 +417,7 @@ If you cancel out you can run ${chalk.bold('lando setup')} to manually kick it o
 /*
  * Helper to show status of secret toggle
  */
-exports.secretToggle = (on = false) => {
+export const secretToggle = (on = false) => {
   switch (on) {
     case true:
       return [
@@ -442,7 +441,7 @@ exports.secretToggle = (on = false) => {
 /*
  * Helper to show status of secret toggle
  */
-exports.secretToggleDenied = (on = false) => [
+export const secretToggleDenied = (on = false) => [
   '',
   chalk.red(niceFont('Toggle Denied!', 'Small Slant', on)),
   '',
@@ -454,7 +453,7 @@ exports.secretToggleDenied = (on = false) => [
 /*
  * Sharing under construction
  */
-exports.shareWait = () => [
+export const shareWait = () => [
   '',
   chalk.red(niceFont('OFFLINE!!!', 'ANSI Shadow')),
   '',
@@ -471,7 +470,7 @@ exports.shareWait = () => [
 /*
  * Helper to show status of secret toggle
  */
-exports.sudoRun = () => [
+export const sudoRun = () => [
   chalk.red('Lando should never ever ever be run as root...'),
   chalk.magenta(niceFont('like ever!!!', 'Small Slant')),
 ].join(os.EOL);
@@ -479,7 +478,7 @@ exports.sudoRun = () => [
 /*
  * Helper to show status of secret toggle
  */
-exports.tunnel = ({url, phase = 'pre'} = {}) => {
+export const tunnel = ({url, phase = 'pre'} = {}) => {
   switch (phase) {
     case 'pre':
       return chalk.cyan('About to share your app to a whole new world!');
@@ -499,7 +498,7 @@ exports.tunnel = ({url, phase = 'pre'} = {}) => {
   }
 };
 
-exports.badToken = () => {
+export const badToken = () => {
   return statusMessage({
     type: 'warning',
     title: 'Invalid Machine Token',
@@ -510,4 +509,29 @@ exports.badToken = () => {
     ],
     url: 'https://dashboard.pantheon.io/machine-token/create/Lando',
   });
+};
+
+export default {
+  appDestroy,
+  appRebuild,
+  appRestart,
+  appStart,
+  appStop,
+  badToken,
+  crash,
+  experimental,
+  init,
+  needsSetup,
+  newContent,
+  poweroff,
+  print,
+  printFont,
+  releaseChannel,
+  runningSetup,
+  secretToggle,
+  secretToggleDenied,
+  setupHeader,
+  shareWait,
+  sudoRun,
+  tunnel,
 };

@@ -1,10 +1,11 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import isClass from 'is-class';
+import path from 'path';
+import {createRequire} from 'module';
+import moveConfig from '../utils/move-config.js';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const isClass = require('is-class');
-const path = require('path');
+const require = createRequire(import.meta.url);
 
 const serviceDefaults = {
   api: 3,
@@ -40,7 +41,7 @@ const landoRecipe = class LandoRecipe {
     // Move our config into the userconfroot if we have some
     // NOTE: we need to do this because on macOS and Windows not all host files
     // are shared into the docker vm
-    if (fs.existsSync(config.confSrc)) require('../utils/move-config')(config.confSrc, config.confDest);
+    if (fs.existsSync(config.confSrc)) moveConfig(config.confSrc, config.confDest);
     this.id = id;
     this.config = {
       proxy: config.proxy,
@@ -53,7 +54,7 @@ const landoRecipe = class LandoRecipe {
 /*
  * @TODO
  */
-module.exports = class Factory {
+export default class Factory {
   registry: any[];
 
   // @TODO add recipe base class as well?
@@ -130,4 +131,4 @@ module.exports = class Factory {
   getRaw(name, api = 3) {
     return (!_.isEmpty(name)) ? _.find(this.registry, {api, name}) : this.registry;
   }
-};
+}

@@ -743,7 +743,50 @@ export interface ComposeServiceConfig extends ServiceConfig {
 // Module Declarations
 // =============================================================================
 
+declare module 'semver' {
+  export function clean(version: string): string | null;
+  export function satisfies(version: string, range: string): boolean;
+  export function valid(version: string): string | null;
+  export function coerce(version: string): { version: string } | null;
+  export function compare(v1: string, v2: string): -1 | 0 | 1;
+  export function gt(v1: string, v2: string): boolean;
+  export function lt(v1: string, v2: string): boolean;
+  export function gte(v1: string, v2: string): boolean;
+  export function lte(v1: string, v2: string): boolean;
+  export function eq(v1: string, v2: string): boolean;
+  export function neq(v1: string, v2: string): boolean;
+  const semver: {
+    clean: typeof clean;
+    satisfies: typeof satisfies;
+    valid: typeof valid;
+    coerce: typeof coerce;
+    compare: typeof compare;
+    gt: typeof gt;
+    lt: typeof lt;
+    gte: typeof gte;
+    lte: typeof lte;
+    eq: typeof eq;
+    neq: typeof neq;
+  };
+  export default semver;
+}
+
 declare module '@lando/core' {
   export const Lando: new (options?: LandoOptions) => Lando;
   export function getLodash(): LandoLodash;
+}
+
+declare module 'inquirer' {
+  export function prompt(questions: unknown[]): Promise<Record<string, unknown>>;
+  export function registerPrompt(name: string, prompt: unknown): void;
+  const inquirer: {
+    prompt: typeof prompt;
+    registerPrompt: typeof registerPrompt;
+  };
+  export default inquirer;
+}
+
+declare module 'inquirer-autocomplete-prompt' {
+  const AutocompletePrompt: unknown;
+  export default AutocompletePrompt;
 }

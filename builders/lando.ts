@@ -1,6 +1,6 @@
-'use strict';
+import _ from 'lodash';
 
-const _ = require('lodash');
+import normalizeOverrides from '../utils/normalize-overrides.js';
 
 /*
  * this should be the same as the v3 "compose" service but we are stealth loading it in core so that we can
@@ -11,7 +11,7 @@ const _ = require('lodash');
  * lando
  *
  */
-module.exports = {
+export default {
   name: 'lando',
   api: 3,
   config: {
@@ -28,7 +28,7 @@ module.exports = {
         services: _.set(
           {},
           options.name,
-          require('../utils/normalize-overrides')(options.services, options._app.root, options.volumes),
+          normalizeOverrides(options.services, options._app.root, options.volumes),
         ),
         networks: options.networks,
         volumes: options.volumes,

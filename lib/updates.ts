@@ -1,16 +1,34 @@
-'use strict';
+import debug from 'debug';
+import fs from 'fs';
+import get from 'lodash/get';
+import _ from 'lodash';
+import os from 'os';
+import path from 'path';
+import semver from 'semver';
+import uniqBy from 'lodash/uniqBy';
+import {color} from 'listr2';
+import isRoot from 'is-root';
+import stringArgv from 'string-argv';
 
-const axios = require('../utils/get-axios')();
-const fs = require('fs');
-const get = require('lodash/get');
-const getOctokit = require('../utils/get-octokit');
-const os = require('os');
-const path = require('path');
-const remove = require('../utils/remove');
-const semver = require('semver');
-const uniqBy = require('lodash/uniqBy');
+import getAxios from '../utils/get-axios.js';
+import getOctokit from '../utils/get-octokit.js';
+import remove from '../utils/remove.js';
+import Plugin from '../components/plugin.js';
+import getPluginUpdateTask from '../utils/get-plugin-update-task.js';
+import parseSetupTask from '../utils/parse-setup-task.js';
+import getCacheDir from '../utils/get-cache-dir.js';
+import downloadX from '../utils/download-x.js';
+import linkBin from '../utils/link-bin.js';
+import isInPath from '../utils/is-in-path.js';
+import getBinPaths from '../utils/get-bin-paths.js';
+import getShellenv from '../utils/get-shellenv.js';
+import getUserShell from '../utils/get-user-shell.js';
+import runElevated from '../utils/run-elevated.js';
+import runCommand from '../utils/run-command.js';
+import getShellProfile from '../utils/get-shell-profile.js';
+import updateShellProfile from '../utils/update-shell-profile.js';
 
-const {color} = require('listr2');
+const axios = getAxios();
 
 const getOS = () => {
   switch (process.platform) {
@@ -23,16 +41,15 @@ const getOS = () => {
   }
 };
 
-// just want to wrap the require so we shave time off of bootstrap
-const getPluginClass = ({channel, config, debug} = {}) => {
-  const Plugin = require('../components/plugin');
+// Configure Plugin class with channel/config/debug settings
+const getPluginClass = ({channel, config, debug}: {channel?: string, config?: any, debug?: any} = {}) => {
   Plugin.channel = channel;
   Plugin.config = config;
   Plugin.debug = debug;
   return Plugin;
 };
 
-module.exports = class UpdateManager {
+export default class UpdateManager {
   agent: string;
   _plugins: any[];
   channel: string;
@@ -50,7 +67,7 @@ module.exports = class UpdateManager {
     config = {},
     cli,
     channel = 'stable',
-    debug = require('debug')('@lando/updates'),
+    debugFn = debug('@lando/updates'),
     dir = os.tmpdir(),
     plugins = [],
   }: any = {}) {
@@ -61,7 +78,7 @@ module.exports = class UpdateManager {
     this.cli = cli;
     this.config = config;
     this.dir = dir;
-    this.debug = debug;
+    this.debug = debugFn;
 
     // store "special" lando update metainfo here
     this.lando = undefined;
@@ -190,11 +207,11 @@ module.exports = class UpdateManager {
       .filter(plugin => plugin.isUpdateable)
       .filter(plugin => plugin.updateAvailable !== false)
       .filter(plugin => plugin.isCli !== true)
-      .map(plugin => require('../utils/get-plugin-update-task')(plugin.updateAvailable, {
+      .map(plugin => getPluginUpdateTask(plugin.updateAvailable, {
         dir: this.dir,
-        Plugin: this.Plugin,
+        Plugin: Plugin,
       }))
-      .map(task => require('../utils/parse-setup-task')(task));
+      .map(task => parseSetupTask(task));
 
     // push cli check here
     if (this?.lando?.update?.url) {
@@ -202,7 +219,7 @@ module.exports = class UpdateManager {
       const {installPath, update} = this.lando;
       const {url, version} = update;
 
-      tasks.push(require('../utils/parse-setup-task')({
+      tasks.push(parseSetupTask({
         title: `Updating lando to v${version}`,
         description: 'lando',
         canInstall: async () => {
@@ -219,17 +236,17 @@ module.exports = class UpdateManager {
           // or true
           return true;
         },
-        task: async (ctx, task) => new Promise((resolve, reject) => {
-          const cacheDir = require('../utils/get-cache-dir')('lando');
+        task: async (ctx: any, task: any) => new Promise((resolve, reject) => {
+          const cacheDir = getCacheDir('lando');
           const filename = process.platform === 'win32' ? 'lando.exe' : 'lando';
           const dest = path.join(cacheDir, `v${version}`, 'bin', filename);
           // @TODO: restore test when we cut 3.22?
-          const download = require('../utils/download-x')(url, {debug: this.debug, dest}); // test: ['version']});
+          const download = downloadX(url, {debug: this.debug, dest}); // test: ['version']});
 
           // success
-          download.on('done', async data => {
+          download.on('done', async (data: any) => {
             // refresh the "symlink"
-            require('../utils/link-bin')(installPath, dest, {debug: this.debug});
+            linkBin(installPath, dest, {debug: this.debug});
 
             // set a good default update messag
             task.title = `Updated lando to ${version}`;
@@ -247,23 +264,23 @@ module.exports = class UpdateManager {
 
             // if link is not in PATH then attempt to add it
             // @NOTE: feels sufficient to just check for `lando` since it _should_ exist in win and posix
-            if (!require('../utils/is-in-path')(path.join(installPath, 'lando'))) {
-              const binPaths = require('../utils/get-bin-paths')(this.lando);
-              const shellEnv = require('../utils/get-shellenv')(binPaths);
+            if (!isInPath(path.join(installPath, 'lando'))) {
+              const binPaths = getBinPaths(this.lando);
+              const shellEnv = getShellenv(binPaths);
 
               // special handling for cmd.exe
-              if (require('../utils/get-user-shell')() === 'cmd.exe') {
-                const args = require('string-argv')(shellEnv.map(line => line[0]).join(' && '));
+              if (getUserShell() === 'cmd.exe') {
+                const args = stringArgv(shellEnv.map((line: string[]) => line[0]).join(' && '));
                 const opts = {debug: this.debug, ignoreReturnCode: true};
-                const result = require('is-root')()
-                  ? await require('../utils/run-elevated')(args, opts)
-                  : await require('../utils/run-command')(args[0], args.slice(1), opts);
+                const result = isRoot()
+                  ? await runElevated(args, opts)
+                  : await runCommand(args[0], args.slice(1), opts);
                 this.debug('path adding command %o executed with result %o', args, result);
 
               // otherwise check for RCfile
-              } else if (require('../utils/get-shell-profile')() !== null) {
-                const rcFile = require('../utils/get-shell-profile')();
-                require('../utils/update-shell-profile')(rcFile, shellEnv);
+              } else if (getShellProfile() !== null) {
+                const rcFile = getShellProfile();
+                updateShellProfile(rcFile, shellEnv);
                 this.debug('added %o to %o', shellEnv, rcFile);
                 task.title = `${task.title}. Start a new terminal session to use the updated ${color.bold(`lando`)}`;
 
@@ -306,9 +323,8 @@ module.exports = class UpdateManager {
    * DEPRECATED and for backwards compatibility only
    * returns the cli version only?
    */
-  async refresh(version, edge = false) {
-    const _ = require('lodash');
-    const parseData = (latest, version) => ({
+  async refresh(version: string, edge = false) {
+    const parseData = (latest: any, version: string) => ({
       version: _.trimStart(_.get(latest, 'tag_name', version), 'v'),
       url: _.get(latest, 'html_url', ''),
       expires: Math.floor(Date.now()) + 86400000,
@@ -334,4 +350,4 @@ module.exports = class UpdateManager {
   updateAvailable(version1, version2) {
     return semver.lt(version1, version2);
   }
-};
+}

@@ -9,10 +9,14 @@ import getOclifCacheDir from './get-cache-dir.js';
 import stripEnv from './strip-env.js';
 import semverValid from 'semver/functions/valid';
 import legacyMerge from './legacy-merge.js';
+import hasher from 'object-hash';
 
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
+
+// ESM equivalent of __dirname
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 /*
  * Converts landofile things into a configsource
@@ -26,14 +30,8 @@ const parseLandofileConfig = (config = {}) => ({
 });
 
 export default options => {
-  // Modules
-  const hasher = hash;
-
+  // Use the legacy merge function
   const lmerge = legacyMerge;
-  const getConfigDefaults = getConfigDefaults;
-  const getEngineConfig = getEngineConfig;
-  const getOclifCacheDir = getOclifCacheDir;
-  const stripEnv = stripEnv;
 
   // Start building the config
   let config = lmerge(getConfigDefaults(options), options);

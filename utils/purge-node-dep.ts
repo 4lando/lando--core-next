@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import remove from './remove.js';
 
-export default (dir, dep) => {
+const purgeNodeDep = (dir, dep) => {
   if (!fs.existsSync(dir)) return;
 
   const entries = fs.readdirSync(dir);
@@ -20,8 +20,10 @@ export default (dir, dep) => {
         }
       }
       if (!stats.isSymbolicLink()) {
-        module.exports(fpath, dep);
+        purgeNodeDep(fpath, dep);
       }
     }
   }
 };
+
+export default purgeNodeDep;

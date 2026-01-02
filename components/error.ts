@@ -1,11 +1,11 @@
-'use strict';
+import debug from 'debug';
 
 /**
- *
+ * Custom error class for Lando
  */
 class LandoError extends Error {
   static id = 'error';
-  static debug = require('debug')('@lando/core:error');
+  static debug = debug('@lando/core:error');
 
   /*
    */
@@ -33,4 +33,4 @@ class LandoError extends Error {
   }
 }
 
-module.exports = LandoError;
+export default LandoError;

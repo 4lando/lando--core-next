@@ -1,6 +1,4 @@
-'use strict';
-
-const orderBy = require('lodash/orderBy');
+import orderBy from 'lodash/orderBy';
 
 // assumes non-scoped plugins are lando ones
 const normalize = name => {
@@ -17,7 +15,7 @@ const normalize = name => {
   else return name;
 };
 
-module.exports = lando => ({
+export default lando => ({
   command: 'version',
   describe: 'Displays lando version information',
   usage: '$0 version [--all] [--full] [--plugin <plugin>]',

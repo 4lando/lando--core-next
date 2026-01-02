@@ -1,9 +1,6 @@
-'use strict';
+import _ from 'lodash';
 
-// Modules
-const _ = require('lodash');
-
-module.exports = lando => {
+export default lando => {
   return {
     command: 'list',
     describe: 'Lists all running lando apps and containers',

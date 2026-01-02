@@ -1,10 +1,7 @@
-'use strict';
+import Log from './logger.js';
+import Metrics from './metrics.js';
 
-// Modules
-const Log = require('./logger');
-const Metrics = require('./metrics');
-
-module.exports = class ErrorHandler {
+export default class ErrorHandler {
   log: any;
   metrics: any;
 
@@ -46,4 +43,4 @@ module.exports = class ErrorHandler {
     })
     .then(() => code);
   }
-};
+}

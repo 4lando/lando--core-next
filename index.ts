@@ -1,9 +1,12 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+// Helper to handle ESM default exports when using require()
+const importDefault = (modulePath: string) => {
+  const mod = require(modulePath);
+  return mod.default ?? mod;
+};
 
 // Default env values
 const defaults = {
@@ -43,23 +46,27 @@ const defaults = {
   },
 };
 
+import getUid from './utils/get-uid';
+import getGid from './utils/get-gid';
+import getUsername from './utils/get-username';
+
 /*
  * Helper to get user conf
  */
 const uc = () => ({
   config: {
     appEnv: {
-      LANDO_HOST_UID: require('./utils/get-uid')(),
-      LANDO_HOST_GID: require('./utils/get-gid')(),
-      LANDO_HOST_USER: require('./utils/get-username')(),
+      LANDO_HOST_UID: getUid(),
+      LANDO_HOST_GID: getGid(),
+      LANDO_HOST_USER: getUsername(),
     },
-    gid: require('./utils/get-gid')(),
-    uid: require('./utils/get-uid')(),
-    username: require('./utils/get-username')(),
+    gid: getGid(),
+    uid: getUid(),
+    username: getUsername(),
   },
 });
 
-module.exports = async lando => {
+export default async lando => {
   // set some stuff and set seom stuff up
   const caDir = path.join(lando.config.userConfRoot, 'certs');
   const sshDir = path.join(lando.config.home, '.ssh');
@@ -78,67 +85,67 @@ module.exports = async lando => {
   _.forEach([binDir, caDir, sshDir], dir => fs.mkdirSync(dir, {recursive: true}));
 
   // ensure we munge plugin stuff together appropriately
-  lando.events.once('pre-install-plugins', async options => await require('./hooks/lando-setup-common-plugins')(lando, options));
+  lando.events.once('pre-install-plugins', async options => await importDefault('./hooks/lando-setup-common-plugins')(lando, options));
 
   // move v3 scripts directories as needed
-  lando.events.on('pre-setup', 0, async () => await require('./hooks/lando-copy-v3-scripts')(lando));
+  lando.events.on('pre-setup', 0, async () => await importDefault('./hooks/lando-copy-v3-scripts')(lando));
 
   // ensure we setup docker if needed
-  lando.events.once('pre-setup', async options => await require(`./hooks/lando-setup-build-engine-${platform}`)(lando, options));
+  lando.events.once('pre-setup', async options => await importDefault(`./hooks/lando-setup-build-engine-${platform}`)(lando, options));
 
   // do some sepecial handling on wsl
-  lando.events.once('pre-setup', async options => await require('./hooks/lando-setup-create-ca-wsl')(lando, options));
+  lando.events.once('pre-setup', async options => await importDefault('./hooks/lando-setup-create-ca-wsl')(lando, options));
   // ensure we create ca
-  lando.events.once('pre-setup', async options => await require('./hooks/lando-setup-create-ca')(lando, options));
+  lando.events.once('pre-setup', async options => await importDefault('./hooks/lando-setup-create-ca')(lando, options));
 
   // and install ca
-  lando.events.once('pre-setup', async options => await require(`./hooks/lando-setup-install-ca-${platform}`)(lando, options));
+  lando.events.once('pre-setup', async options => await importDefault(`./hooks/lando-setup-install-ca-${platform}`)(lando, options));
 
   // ensure we setup docker-compose if needed
-  lando.events.once('pre-setup', async options => await require('./hooks/lando-setup-orchestrator')(lando, options));
+  lando.events.once('pre-setup', async options => await importDefault('./hooks/lando-setup-orchestrator')(lando, options));
 
   // ensure we setup landonet
-  lando.events.once('pre-setup', async options => await require('./hooks/lando-setup-landonet')(lando, options));
+  lando.events.once('pre-setup', async options => await importDefault('./hooks/lando-setup-landonet')(lando, options));
 
   // also move scripts for init considerations
-  lando.events.on('pre-init', 0, async () => await require('./hooks/lando-copy-v3-scripts')(lando));
+  lando.events.on('pre-init', 0, async () => await importDefault('./hooks/lando-copy-v3-scripts')(lando));
 
   // move v3 scripts directories as needed
-  lando.events.on('pre-init', 0, async () => await require('./hooks/lando-copy-v3-scripts')(lando));
+  lando.events.on('pre-init', 0, async () => await importDefault('./hooks/lando-copy-v3-scripts')(lando));
 
   // set proxy config
-  lando.events.on('post-bootstrap-config', async () => await require('./hooks/lando-set-proxy-config')(lando));
+  lando.events.on('post-bootstrap-config', async () => await importDefault('./hooks/lando-set-proxy-config')(lando));
 
   // make sure Lando Specification 337 is available to all
-  lando.events.on('post-bootstrap-app', async () => await require('./hooks/lando-add-l337-spec')(lando));
+  lando.events.on('post-bootstrap-app', async () => await importDefault('./hooks/lando-add-l337-spec')(lando));
 
   // flush update cache if it needs to be
-  lando.events.on('ready', async () => await require('./hooks/lando-flush-updates-cache')(lando));
+  lando.events.on('ready', async () => await importDefault('./hooks/lando-flush-updates-cache')(lando));
 
   // merge in needed legacy init stuff
-  lando.events.on('cli-init-answers', async () => await require('./hooks/lando-load-legacy-inits')(lando));
+  lando.events.on('cli-init-answers', async () => await importDefault('./hooks/lando-load-legacy-inits')(lando));
 
   // this is a gross hack we need to do to reset the engine because the lando 3 runtime has no idea
-  lando.events.on('almost-ready', 1, async () => await require('./hooks/lando-reset-orchestrator')(lando));
-  lando.events.on('post-setup', 1, async () => await require('./hooks/lando-reset-orchestrator')(lando));
+  lando.events.on('almost-ready', 1, async () => await importDefault('./hooks/lando-reset-orchestrator')(lando));
+  lando.events.on('post-setup', 1, async () => await importDefault('./hooks/lando-reset-orchestrator')(lando));
 
   // run engine compat checks
-  lando.events.on('almost-ready', 2, async () => await require('./hooks/lando-get-compat')(lando));
+  lando.events.on('almost-ready', 2, async () => await importDefault('./hooks/lando-get-compat')(lando));
 
   // throw error if engine is not available
-  lando.events.once('pre-engine-autostart', async () => await require('./hooks/lando-setup-check')(lando));
+  lando.events.once('pre-engine-autostart', async () => await importDefault('./hooks/lando-setup-check')(lando));
 
   // autostart docker if we need to
-  lando.events.once('engine-autostart', async () => await require('./hooks/lando-autostart-engine')(lando));
+  lando.events.once('engine-autostart', async () => await importDefault('./hooks/lando-autostart-engine')(lando));
 
   // move v3 scripts directories as needed
-  lando.events.on('pre-engine-start', 0, async () => await require('./hooks/lando-copy-v3-scripts')(lando));
+  lando.events.on('pre-engine-start', 0, async () => await importDefault('./hooks/lando-copy-v3-scripts')(lando));
 
   // clean networks
-  lando.events.on('pre-engine-start', 1, async () => await require('./hooks/lando-clean-networks')(lando));
+  lando.events.on('pre-engine-start', 1, async () => await importDefault('./hooks/lando-clean-networks')(lando));
 
   // regen task cache
-  lando.events.on('before-end', 9999, async () => await require('./hooks/lando-generate-tasks-cache')(lando));
+  lando.events.on('before-end', 9999, async () => await importDefault('./hooks/lando-generate-tasks-cache')(lando));
 
   // return some default things
   return _.merge({}, defaults, uc(), {config: {

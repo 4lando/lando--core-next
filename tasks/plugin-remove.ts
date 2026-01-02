@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = lando => {
+export default lando => {
   return {
     command: 'plugin-remove',
     usage: '$0 plugin-remove <plugin> [plugin...]',

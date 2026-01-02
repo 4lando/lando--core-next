@@ -1,8 +1,6 @@
-'use strict';
+import _ from 'lodash';
 
-const _ = require('lodash');
-
-module.exports = lando => ({
+export default lando => ({
   command: 'info',
   describe: 'Prints info about your app',
   usage: '$0 info [--deep] [--filter <key=value>...] [--format <default|json|table>] [--path <path>] [--service <service>...]', // eslint-disable-line max-len

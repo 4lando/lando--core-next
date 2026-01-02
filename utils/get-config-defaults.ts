@@ -1,11 +1,15 @@
 import getDockerBinPath from './get-docker-bin-path.js';
 import getDockerX from './get-docker-x.js';
 import isWslInterop from './is-wsl-interop.js';
+import isInteractive from 'is-interactive';
 
 import _ from 'lodash';
 const browsers = ['electron', 'chrome', 'atom-shell'];
 import path from 'path';
 import os from 'os';
+
+// ESM equivalent of __dirname
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 const getBuildEngineVersion = (platform = process.landoPlatform ?? process.platform) => {
   switch (platform) {

@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = lando => ({
+export default lando => ({
   command: 'stop',
   describe: 'Stops your app',
   usage: '$0 stop',

@@ -1,18 +1,26 @@
-'use strict';
+import _ from 'lodash';
+import {createRequire} from 'module';
+import fs from 'fs';
+import getDockerBinPath from '../utils/get-docker-bin-path.js';
+import os from 'os';
+import path from 'path';
+import semver from 'semver';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const getDockerBinPath = require('../utils/get-docker-bin-path');
-const os = require('os');
-const path = require('path');
-const semver = require('semver');
+import Cache from './cache.js';
+import Events from './events.js';
+import Log from './logger.js';
+import Promise from './promise.js';
+import Shell from './shell.js';
 
-const Cache = require('./cache');
-const Events = require('./events');
-const Log = require('./logger');
-const Promise = require('./promise');
-const Shell = require('./shell');
+import debugShim from '../utils/debug-shim.js';
+import delay from 'delay';
+import getComposeX from '../utils/get-compose-x.js';
+import getDockerX from '../utils/get-docker-x.js';
+import runCommand from '../utils/run-command.js';
+import runElevated from '../utils/run-elevated.js';
+import runPowershellScript from '../utils/run-powershell-script.js';
+
+const require = createRequire(import.meta.url);
 
 const shell = new Shell();
 
@@ -46,7 +54,7 @@ const getMacProp = prop => shell.sh(['defaults', 'read', `${MACOS_BASE}/Contents
 /*
  * Creates a new Daemon instance.
  */
-module.exports = class LandoDaemon {
+export default class LandoDaemon {
   cache: any;
   compose: any;
   debug: any;
@@ -62,16 +70,16 @@ module.exports = class LandoDaemon {
   constructor(
       cache = new Cache(),
       events = new Events(),
-      docker = require('../utils/get-docker-x')(),
+      docker = getDockerX(),
       log = new Log(),
       context = 'node',
-      compose = require('../utils/get-compose-x')(),
+      compose = getComposeX(),
       orchestratorVersion = '2.31.0',
       userConfRoot = path.join(os.homedir(), '.lando'),
   ) {
     this.cache = cache;
     this.compose = compose;
-    this.debug = require('../utils/debug-shim')(log);
+    this.debug = debugShim(log);
     this.orchestratorVersion = orchestratorVersion;
     this.context = context;
     this.docker = docker;
@@ -91,7 +99,7 @@ module.exports = class LandoDaemon {
    * @return {Promise} A Promise.
    */
   async up(retry = true, password) {
-    const debug = require('../utils/debug-shim')(this.log);
+    const debug = debugShim(this.log);
 
     // backwards compat
     if (retry === true) retry = {max: 25, backoff: 1000};
@@ -121,8 +129,8 @@ module.exports = class LandoDaemon {
             // docker engine
             case 'linux': {
               const lscript = path.join(this.scriptsDir, 'docker-engine-start.sh');
-              if (password) await require('../utils/run-elevated')([lscript], {debug, password});
-              else await require('../utils/run-command')(lscript, {debug});
+              if (password) await runElevated([lscript], {debug, password});
+              else await runCommand(lscript, {debug});
               break;
             }
 
@@ -133,19 +141,19 @@ module.exports = class LandoDaemon {
 
               // if desktop version is >=4.37.1 then use docker desktop cli
               if (semver.gte(desktop, '4.37.0', {includePrerelease: true, loose: true})) {
-                await require('../utils/run-command')(this.docker, ['desktop', 'start', '--timeout', '300'], {debug: this.debug});
+                await runCommand(this.docker, ['desktop', 'start', '--timeout', '300'], {debug: this.debug});
 
               // otherwise mac fallback
               } else {
-                await require('../utils/run-command')('open', [MACOS_BASE], {debug: this.debug});
+                await runCommand('open', [MACOS_BASE], {debug: this.debug});
               }
               break;
             }
             case 'win32':
             case 'wsl': {
               const wscript = path.join(this.scriptsDir, 'docker-desktop-start.ps1');
-              await require('../utils/run-powershell-script')(wscript, undefined, {debug: this.debug});
-              await require('delay')(2000);
+              await runPowershellScript(wscript, undefined, {debug: this.debug});
+              await delay(2000);
               break;
             }
           }
@@ -235,7 +243,7 @@ module.exports = class LandoDaemon {
 
     // Return true if we get a zero response and cache the result
     try {
-      await require('../utils/run-command')(docker, ['ps'], {debug: this.debug});
+      await runCommand(docker, ['ps'], {debug: this.debug});
       this.debug('engine is up.');
       cache.set('engineup', true, {ttl: 5});
       this.isRunning = true;
@@ -279,4 +287,4 @@ module.exports = class LandoDaemon {
       }
     }
   }
-};
+}

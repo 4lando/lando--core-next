@@ -16,7 +16,6 @@ const getMetricsContext = () => {
 };
 
 export default (log, config) => {
-  const Metrics = Metrics;
   const command = _.get(config, 'command._', 'unknown');
 
   // group by endpoints and resolve multiples

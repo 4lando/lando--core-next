@@ -1,13 +1,8 @@
-'use strict';
-
-// Modules.
-const _ = require('lodash');
-
-const {nanoid} = require('nanoid');
-
-const EventEmitter = require('events').EventEmitter;
-const Log = require('./logger');
-const Promise = require('./promise');
+import _ from 'lodash';
+import {nanoid} from 'nanoid';
+import {EventEmitter} from 'events';
+import Log from './logger.js';
+import Promise from './promise.js';
 
 /*
  * Creates a new Events instance.
@@ -149,7 +144,4 @@ AsyncEvents.prototype.__emit = EventEmitter.prototype.emit;
 // Set our maxListeners to something more reasonable for lando
 AsyncEvents.prototype.setMaxListeners(64);
 
-/*
- * Return the class
- */
-module.exports = AsyncEvents;
+export default AsyncEvents;

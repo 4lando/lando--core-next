@@ -1,33 +1,22 @@
-'use strict';
+import _ from 'lodash';
+import cleanStack from 'clean-stacktrace';
+import getAxios from '../utils/get-axios.js';
+import Log from './logger.js';
+import path from 'path';
+import Promise from './promise.js';
 
-const _ = require('lodash');
-const cleanStack = require('clean-stacktrace');
-const getAxios = require('../utils/get-axios');
-const Log = require('./logger');
-const path = require('path');
-const Promise = require('./promise');
-
-/*
- * Helper to cleanse path
- */
 const cleanLine = (line = '') => {
   const m = /.*\((.*)\).?/.exec(line) || [];
   return m[1] ? line.replace(m[1], _.last(m[1].split(path.sep))) : line;
 };
 
-/*
- * Helper to sanitize data
- */
 const cleanseData = data => {
   if (!_.isEmpty(data.stack)) data.stack = cleanStack(data.stack, cleanLine);
   if (!_.isEmpty(data.message)) data.message = cleanLine(data.message);
   return data;
 };
 
-/*
- * Creates a new Metrics thing.
- */
-module.exports = class Metrics {
+export default class Metrics {
   id: string;
   log: any;
   endpoints: any[];
@@ -64,4 +53,4 @@ module.exports = class Metrics {
       });
     }));
   }
-};
+}

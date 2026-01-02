@@ -1,21 +1,30 @@
-'use strict';
+import fs from 'fs-extra';
+import has from 'lodash/has';
+import isClass from 'is-class';
+import makeError from '../utils/make-error.js';
+import merge from '../utils/merge.js';
+import os from 'os';
+import path from 'path';
+import parsePkgName from '../utils/parse-package-name.js';
+import purgeDep from '../utils/purge-node-dep.js';
+import read from '../utils/read-file.js';
+import remove from '../utils/remove.js';
+import semver from 'semver';
+import write from '../utils/write-file.js';
+import debug from 'debug';
+import Arborist from '@npmcli/arborist';
+import npa from 'npm-package-arg';
+import normalizeManifestPaths from '../utils/normalize-manifest-paths.js';
+import traverseUp from '../utils/traverse-up.js';
+import getCommitHash from '../utils/get-commit-hash.js';
+import isLteVersion from '../utils/is-lte-version.js';
 
-const fs = require('fs-extra');
-const has = require('lodash/has');
-const isClass = require('is-class');
-const makeError = require('../utils/make-error');
-const merge = require('../utils/merge');
-const os = require('os');
-const path = require('path');
-const parsePkgName = require('../utils/parse-package-name');
-const purgeDep = require('../utils/purge-node-dep');
-const read = require('../utils/read-file');
-const remove = require('../utils/remove');
-const semver = require('semver');
-const write = require('../utils/write-file');
+import {createRequire} from 'module';
+import {nanoid} from 'nanoid';
+import {extract, manifest, packument} from 'pacote';
 
-const {nanoid} = require('nanoid');
-const {extract, manifest, packument} = require('pacote');
+// createRequire for dynamic requires (plugin.js files, JSON files)
+const require = createRequire(import.meta.url);
 
 /**
  *
@@ -27,7 +36,7 @@ class Plugin {
   static config = {};
   static channel = 'stable';
   static id = 'plugin';
-  static debug = require('debug')('@lando/core:plugin');
+  static debug = debug('@lando/core:plugin');
 
   static fetchConfig = {
     namespace: 'auto',
@@ -60,7 +69,7 @@ class Plugin {
       fs.mkdirSync(tmp, {recursive: true});
 
       // try to extract the plugin
-      const {resolved} = await extract(pkg.raw, tmp, merge({Arborist: require('@npmcli/arborist')}, [config]));
+      const {resolved} = await extract(pkg.raw, tmp, merge({Arborist}, [config]));
       Plugin.debug('extracted plugin %o to %o from %o using %o %o', info._id, tmp, resolved, config);
 
       // remove excludes
@@ -214,7 +223,7 @@ class Plugin {
     // get the manifest
     debug.extend(this.pjson.name)('found %o at %o', this.legacyPlugin ? 'legacy plugin' : 'plugin', this.root);
     // get the manifest and normalize it based on root
-    this.manifest = require('../utils/normalize-manifest-paths')({...this.pjson.lando, ...this.#load(...loadOpts)}, this.root); // eslint-disable-line max-len
+    this.manifest = normalizeManifestPaths({...this.pjson.lando, ...this.#load(...loadOpts)}, this.root); // eslint-disable-line max-len
 
     // if the manifest disables the plugin
     if (this.manifest.enabled === false || this.manifest.enabled === 0) this.enabled = false;
@@ -237,7 +246,7 @@ class Plugin {
     // if we dont have a version at this point lets traverse up and see if we can find a parent
     if (!this.version) {
       // get the list of potential parents
-      const ppsjons = require('../utils/traverse-up')(['package.json'], path.resolve(this.root, '..'));
+      const ppsjons = traverseUp(['package.json'], path.resolve(this.root, '..'));
       // remove the root
       ppsjons.pop();
       // paternity test
@@ -255,7 +264,7 @@ class Plugin {
 
     // add auxilary package info
     this.spec = `${this.package}@${this.version}`;
-    this.scope = require('npm-package-arg')(this.spec).scope;
+    this.scope = npa(this.spec).scope;
     if (this.scope) this.unscoped = this.package.replace(`${this.scope}/`, '');
 
     // add some computed properties
@@ -268,7 +277,7 @@ class Plugin {
     // determine some packaging stuff
     this.packaged = has(this.parent, 'pjson.dist') || has(this, 'pjson.dist');
     this.source = fs.existsSync(path.join(this.sourceRoot, '.git', 'HEAD'));
-    this.commit = commit ?? this.source ? require('../utils/get-commit-hash')(this.sourceRoot, {short: true}) : false;
+    this.commit = commit ?? this.source ? getCommitHash(this.sourceRoot, {short: true}) : false;
     // append commit to version if from source
     if (this.source && this.commit) this.version = `${this.version}-0-${this.commit}`;
 
@@ -340,7 +349,7 @@ class Plugin {
       const hc = data['dist-tags'].latest === hv ? 'stable' : channel;
 
       // if the hv is lte to what we have then no update is available
-      if (require('../utils/is-lte-version')(hv, this.version)) {
+      if (isLteVersion(hv, this.version)) {
         this.debug('cannot be updated on channel %o (%o <= %o)', channel, hv, this.version);
         return this;
 
@@ -404,4 +413,4 @@ class Plugin {
   }
 }
 
-module.exports = Plugin;
+export default Plugin;

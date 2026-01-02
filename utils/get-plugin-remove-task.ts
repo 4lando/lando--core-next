@@ -1,9 +1,9 @@
-import Plugin from '../components/plugin.js';
+import PluginClass from '../components/plugin.js';
 
 // checks to see if a setting is disabled
 export default (plugin, {
   fallback = 'unknown plugin',
-  Plugin = Plugin,
+  Plugin = PluginClass,
 } = {}) => {
   const name = plugin && plugin.name ? plugin.name : fallback;
   return {

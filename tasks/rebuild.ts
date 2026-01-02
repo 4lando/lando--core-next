@@ -1,9 +1,7 @@
-'use strict';
+import _ from 'lodash';
+import utils from './../lib/utils';
 
-const _ = require('lodash');
-const utils = require('./../lib/utils');
-
-module.exports = lando => {
+export default lando => {
   return {
     command: 'rebuild',
     describe: 'Rebuilds your app from scratch, preserving data',

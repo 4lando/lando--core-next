@@ -1,31 +1,38 @@
 /* eslint-disable max-len */
-'use strict';
+import fs from 'fs-extra';
+import os from 'os';
+import path from 'path';
+import merge from 'lodash/merge';
+import slugify from 'slugify';
+import debug from 'debug';
+import {sync as globSync} from 'glob';
+import stringArgv from 'string-argv';
 
-const fs = require('fs-extra');
-const path = require('path');
-const merge = require('lodash/merge');
-const slugify = require('slugify');
+import Dockerode from 'dockerode';
+import {EventEmitter} from 'events';
+import {nanoid} from 'nanoid';
+import {PassThrough} from 'stream';
 
-const Dockerode = require('dockerode');
-const {EventEmitter} = require('events');
-const {nanoid} = require('nanoid');
-const {PassThrough} = require('stream');
+import makeError from '../utils/make-error.js';
+import makeSuccess from '../utils/make-success.js';
+import mergePromise from '../utils/merge-promise.js';
 
-const makeError = require('../utils/make-error');
-const makeSuccess = require('../utils/make-success');
-const mergePromise = require('../utils/merge-promise');
-
-const read = require('../utils/read-file');
-const remove = require('../utils/remove');
-const write = require('../utils/write-file');
+import read from '../utils/read-file.js';
+import remove from '../utils/remove.js';
+import write from '../utils/write-file.js';
+import getDockerX from '../utils/get-docker-x.js';
+import getComposeX from '../utils/get-compose-x.js';
+import getPassphraselessKeys from '../utils/get-passphraseless-keys.js';
+import runCommand from '../utils/run-command.js';
+import getBuildxError from '../utils/get-buildx-error.js';
 
 class DockerEngine extends Dockerode {
   static name = 'docker-engine';
   static cspace = 'docker-engine';
   static config = {};
-  static debug = require('debug')('docker-engine');
-  static builder = require('../utils/get-docker-x')();
-  static orchestrator = require('../utils/get-compose-x')();
+  static debug = debug('docker-engine');
+  static builder = getDockerX();
+  static orchestrator = getComposeX();
   // @NOTE: is wsl accurate here?
   // static supportedPlatforms = ['linux', 'wsl'];
 
@@ -52,7 +59,7 @@ class DockerEngine extends Dockerode {
       tag,
       buildArgs = {},
       attach = false,
-      context = path.join(require('os').tmpdir(), nanoid()),
+      context = path.join(os.tmpdir(), nanoid()),
       id = tag,
       sources = [],
     } = {}) {
@@ -141,7 +148,7 @@ class DockerEngine extends Dockerode {
 
     // on windows we want to ensure the build context has linux line endings
     if (process.platform === 'win32') {
-      for (const file of require('glob').sync(path.join(context, '**/*'), {nodir: true})) {
+      for (const file of globSync(path.join(context, '**/*'), {nodir: true})) {
         write(file, read(file), {forcePosixLineEndings: true});
       }
     }
@@ -187,7 +194,7 @@ class DockerEngine extends Dockerode {
     {
       tag,
       buildArgs = {},
-      context = path.join(require('os').tmpdir(), nanoid()),
+      context = path.join(os.tmpdir(), nanoid()),
       id = tag,
       ignoreReturnCode = false,
       sshKeys = [],
@@ -235,7 +242,7 @@ class DockerEngine extends Dockerode {
 
     // on windows we want to ensure the build context has linux line endings
     if (process.platform === 'win32') {
-      for (const file of require('glob').sync(path.join(context, '**/*'), {nodir: true})) {
+      for (const file of globSync(path.join(context, '**/*'), {nodir: true})) {
         write(file, read(file), {forcePosixLineEndings: true});
       }
     }
@@ -263,7 +270,7 @@ class DockerEngine extends Dockerode {
     // if we have sshKeys then lets pass those in
     if (sshKeys.length > 0) {
       // ensure we have good keys
-      sshKeys = require('../utils/get-passphraseless-keys')(sshKeys);
+      sshKeys = getPassphraselessKeys(sshKeys);
       // first add all the keys with id "keys"
       args.args.push(`--ssh=keys=${sshKeys.join(',')}`);
       // then add each key separately with its name as the key
@@ -282,7 +289,7 @@ class DockerEngine extends Dockerode {
     // @TODO: consider other opts? https://docs.docker.com/reference/cli/docker/buildx/build/ args?
     // secrets?
     // gha cache-from/to?
-    const buildxer = require('../utils/run-command')(args.command, args.args, {debug});
+    const buildxer = runCommand(args.command, args.args, {debug});
 
     // augment buildxer with more events so it has the same interface as build
     buildxer.stdout.on('data', data => {
@@ -300,7 +307,7 @@ class DockerEngine extends Dockerode {
     buildxer.on('close', code => {
       // if code is non-zero and we arent ignoring then reject here
       if (code !== 0 && !ignoreReturnCode) {
-        buildxer.emit('error', require('../utils/get-buildx-error')({code, stdout, stderr}));
+        buildxer.emit('error', getBuildxError({code, stdout, stderr}));
       // otherwise return done
       } else {
         buildxer.emit('done', {code, stdout, stderr});
@@ -575,7 +582,7 @@ class DockerEngine extends Dockerode {
     // error if no command
     if (!command) throw new Error('you must pass a command into engine.run');
     // arrayify commands that are strings
-    if (typeof command === 'string') command = require('string-argv')(command);
+    if (typeof command === 'string') command = stringArgv(command);
     // some good default createOpts
     const defaultCreateOptions = {
       AttachStdin: interactive,
@@ -600,4 +607,4 @@ class DockerEngine extends Dockerode {
   }
 }
 
-module.exports = DockerEngine;
+export default DockerEngine;

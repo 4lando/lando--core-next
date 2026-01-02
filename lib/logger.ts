@@ -1,12 +1,9 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
-const serialize = require('winston/lib/winston/common').serialize;
-const winston = require('winston');
-const util = require('util');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
+import {serialize} from 'winston/lib/winston/common';
+import winston from 'winston';
+import util from 'util';
 
 // Constants
 const logLevels = {
@@ -139,7 +136,7 @@ const keySanitizer = sanitizeKey => (level, msg, meta) => {
  * // Log a warning message
  * lando.log.warning('Something is up with app %s in directory %s', appName, dir);
  */
-module.exports = class Log extends winston.Logger {
+export default class Log extends winston.Logger {
   lasttime: number;
 
   constructor({logDir, extra, logLevelConsole = 'warn', logLevel = 'debug', logName = 'lando'}: {
@@ -231,4 +228,4 @@ module.exports = class Log extends winston.Logger {
     this.sanitizedKeys.push(key);
     this.rewriters.push(keySanitizer(key));
   }
-};
+}

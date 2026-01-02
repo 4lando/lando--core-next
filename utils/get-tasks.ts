@@ -53,7 +53,6 @@ const appRunner = command => (argv, lando) => {
  * Helper to return the engine task runner
  */
 const engineRunner = (config, command) => (argv, lando) => {
-  const AsyncEvents = AsyncEvents;
   // Build a minimal app
   const app = lando.cache.get(path.basename(config.composeCache));
   app.config = config;
