@@ -1,6 +1,14 @@
+import debugShim from '../utils/debug-shim';
+import getPluginAddTask from '../utils/get-plugin-add-task';
+import getPluginConfig from '../utils/get-plugin-config';
+import getPluginType from '../utils/get-plugin-type';
+import lopts2Popts from '../utils/lopts-2-popts';
+import merge from '../utils/merge';
+import Plugin from '../components/plugin';
+
 export default lando => {
   // the default install directory
-  const {dir} = lando.config.pluginDirs.find(dir => dir.type === require('../utils/get-plugin-type')());
+  const {dir} = lando.config.pluginDirs.find(dir => dir.type === getPluginType());
 
   return {
     command: 'plugin-add',
@@ -49,12 +57,6 @@ export default lando => {
       },
     },
     run: async options => {
-      const getPluginConfig = require('../utils/get-plugin-config');
-      const lopts2Popts = require('../utils/lopts-2-popts');
-      const merge = require('../utils/merge');
-
-      const Plugin = require('../components/plugin');
-
       // normalize incoming options on top of any managed or user plugin config we already have
       options.config = merge({}, [
         getPluginConfig(lando.config.pluginConfigFile, lando.config.pluginConfig),
@@ -63,7 +65,7 @@ export default lando => {
 
       // reset Plugin static defaults for v3 purposes
       Plugin.config = options.config;
-      Plugin.debug = require('../utils/debug-shim')(lando.log);
+      Plugin.debug = debugShim(lando.log);
       Plugin.fetchConfig.namespace = options.fetchNamespace;
       Plugin.fetchConfig.excludeDeps = options.removeDependency;
 
@@ -72,7 +74,7 @@ export default lando => {
       lando.log.debug('attempting to install plugins %j', plugins);
 
       // prep listr things
-      const tasks = plugins.map(plugin => require('../utils/get-plugin-add-task')(plugin, {dir: options.dir, Plugin}));
+      const tasks = plugins.map(plugin => getPluginAddTask(plugin, {dir: options.dir, Plugin}));
 
       // try to fetch the plugins
       const {errors, results, total} = await lando.runTasks(tasks, {

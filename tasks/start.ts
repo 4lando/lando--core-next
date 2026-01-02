@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import * as utils from './../lib/utils';
 
+import landoRunSetup from '../hooks/lando-run-setup';
+
 export default lando => {
   return {
     command: 'start',
@@ -15,7 +17,7 @@ export default lando => {
         console.log(lando.cli.makeArt('appStart', {name: app.name, phase: 'pre'}));
 
         // run setup if we need to
-        await require('../hooks/lando-run-setup')(lando);
+        await landoRunSetup(lando);
 
         // Normal bootup
         try {

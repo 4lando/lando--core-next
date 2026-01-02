@@ -10,6 +10,7 @@ import sudoBlock from 'sudo-block';
 import isInteractive from 'is-interactive';
 import {ux} from '@oclif/core';
 import {createRequire} from 'module';
+import Debug from 'debug';
 
 import formatters from './formatters.js';
 import getSysDataPath from '../utils/get-system-data-dir.js';
@@ -79,13 +80,14 @@ export default class Cli {
     logLevel = 'warn',
     userConfRoot = path.join(os.homedir(), '.lando'),
     coreBase = path.resolve(__dirname, '..'),
-    debug = debug('@lando/cli'),
+    // eslint-disable-next-line new-cap
+    debugInstance = Debug('@lando/cli'),
   ) {
     this.prefix = prefix;
     this.logLevel = logLevel;
     this.userConfRoot = userConfRoot;
     this.coreBase = coreBase;
-    this.debug = debug;
+    this.debug = debugInstance;
     this.chalk = chalk;
   }
 

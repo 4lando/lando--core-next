@@ -1,7 +1,10 @@
 import groupBy from 'lodash/groupBy';
 import merge from 'lodash/merge';
+import sortBy from 'lodash/sortBy';
 
 import {color, figures} from 'listr2';
+
+import getPluginType from '../utils/get-plugin-type';
 
 const defaultStatus = {
   'NO UPDATE': 0,
@@ -93,11 +96,10 @@ export default lando => {
     ],
     options,
     run: async options => {
-      const sortBy = require('lodash/sortBy');
       const ux = lando.cli.getUX();
 
       // add the plugins and install dir
-      const dir = lando.config.pluginDirs.find(dir => dir.type === require('../utils/get-plugin-type')());
+      const dir = lando.config.pluginDirs.find(dir => dir.type === getPluginType());
       lando.updates.plugins = lando.config.plugins;
       lando.updates.dir = dir ? dir.dir : undefined;
 

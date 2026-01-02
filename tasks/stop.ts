@@ -1,3 +1,5 @@
+import landoRunSetup from '../hooks/lando-run-setup';
+
 export default lando => ({
   command: 'stop',
   describe: 'Stops your app',
@@ -9,7 +11,7 @@ export default lando => ({
     if (app) {
       console.log(lando.cli.makeArt('appStop', {name: app.name, phase: 'pre'}));
       // run setup if we need to
-      await require('../hooks/lando-run-setup')(lando);
+      await landoRunSetup(lando);
       // stop
       await app.stop();
       console.log(' ');

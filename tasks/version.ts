@@ -1,5 +1,7 @@
 import orderBy from 'lodash/orderBy';
 
+import Plugin from '../components/plugin';
+
 // assumes non-scoped plugins are lando ones
 const normalize = name => {
   // if name is not a string then just return false?
@@ -71,7 +73,6 @@ export default lando => ({
     // if all or component is non cli/core then also add all our plugin versions
     // but do not show core if its coming from CLI
     if (options.all || (options.plugin !== '@lando/core' && options.plugin !== '@lando/cli')) {
-      const Plugin = require('../components/plugin');
       for (const data of lando.config.plugins) {
         const plugin = new Plugin(data.dir);
         if (plugin.location !== lando.config.cli.plugin) {

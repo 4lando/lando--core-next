@@ -5,27 +5,30 @@
  * @name lando
  */
 
-'use strict';
+import dns from 'dns';
+import fs from 'fs';
+import path from 'path';
+import {fileURLToPath} from 'url';
+import _ from 'lodash';
+import argv from '@lando/argv';
+import Debug from 'debug';
 
-// DNS must be required first to ensure IPv4 resolution order is set before any network operations
-const dns = require('dns');
+import defaultConfig from '../utils/get-default-config';
+import getApp from '../utils/get-app';
+import getLandoFiles from '../utils/get-lando-files';
+import lmerge from '../utils/legacy-merge';
+import loadFile from '../utils/load-file';
+import loadEnvars from '../utils/load-envars';
+import isWslInterop from '../utils/is-wsl-interop';
+import Cli from '../lib/cli';
+import getTasks from '../utils/get-tasks';
+import Lando from '../lib/lando';
+import pjson from '../package.json';
+
+// DNS must be set first to ensure IPv4 resolution order before any network operations
 dns.setDefaultResultOrder('ipv4first');
 
-const fs = require('fs');
-const path = require('path');
-const _ = require('lodash');
-const argv = require('@lando/argv');
-
-const defaultConfig = require('../utils/get-default-config');
-const getApp = require('../utils/get-app');
-const getLandoFiles = require('../utils/get-lando-files');
-const lmerge = require('../utils/legacy-merge');
-const loadFile = require('../utils/load-file');
-const loadEnvars = require('../utils/load-envars');
-const isWslInterop = require('../utils/is-wsl-interop');
-const Cli = require('../lib/cli');
-const getTasks = require('../utils/get-tasks');
-const Lando = require('../lib/lando');
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const id = path.basename(process.argv[1] ?? process.argv[0] ?? 'lando');
 
@@ -33,20 +36,18 @@ const id = path.basename(process.argv[1] ?? process.argv[0] ?? 'lando');
 if (process.env.DEBUG) delete process.env.DEBUG;
 
 if (process.env.LANDO_DEBUG) {
-  const debug = require('debug');
   const isEnabled = process.env.LANDO_DEBUG === '1' ||
-    process.env.LANDO_DEBUG === 'true' ||
-    process.env.LANDO_DEBUG === true;
+    process.env.LANDO_DEBUG === 'true';
   const scope = isEnabled ? `${id}*` : process.env.LANDO_DEBUG;
-  debug.enable(scope);
+  Debug.enable(scope);
 }
 
 if (argv.hasOption('--debug')) {
-  require('debug').enable(argv.getOption('--debug', {defaultValue: `${id}*`}));
+  Debug.enable(argv.getOption('--debug', {defaultValue: `${id}*`}));
 }
 
-const debug = require('debug')(id || 'lando');
-const pjson = require('../package.json');
+// eslint-disable-next-line new-cap
+const debug = Debug(id || 'lando');
 
 debug('starting %o version %o runtime selector...', id, pjson.version);
 

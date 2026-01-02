@@ -1,12 +1,12 @@
+import write from '../utils/write-file';
+import {color} from 'listr2';
+
 export default lando => {
   return {
     command: 'plugin-logout',
     usage: '$0 plugin-logout',
     level: 'tasks',
     run: async () => {
-      const write = require('../utils/write-file');
-      const {color} = require('listr2');
-
       // write an empty config file
       write(lando.config.pluginConfigFile, {});
       lando.log.debug('wrote empty config to %s', lando.config.pluginConfigFile);
