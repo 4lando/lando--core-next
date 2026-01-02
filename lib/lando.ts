@@ -38,6 +38,10 @@ import parseToPluginStrings from '../utils/parse-to-plugin-strings.js';
 import getPluginAddTask from '../utils/get-plugin-add-task.js';
 import parsePackageName from '../utils/parse-package-name.js';
 import getPluginType from '../utils/get-plugin-type.js';
+import isBunCompiled from '../utils/is-bun-compiled.js';
+
+// Static import of core plugin for compiled binary support
+import corePlugin from '../index.js';
 
 // Dynamic imports that must be required at runtime
 import generateTasksCache from '../hooks/lando-generate-tasks-cache.js';
@@ -103,8 +107,19 @@ const bootstrapConfig = async lando => {
 
   // loop through plugins and load them
   for await (const p of plugins) {
-    // load ig
-    const plugin = await lando.plugins.load(p, p.path, lando);
+    let plugin;
+
+    // In compiled Bun binaries, dynamically loading @lando/core from /$bunfs/ paths fails
+    // because the virtual filesystem isn't accessible via require(). Use static import instead.
+    if (p.name === '@lando/core' && isBunCompiled()) {
+      lando.log.debug('loading @lando/core from static import (compiled binary mode)');
+      p.data = await corePlugin(lando);
+      lando.plugins.registry.push(p);
+      plugin = p;
+    } else {
+      plugin = await lando.plugins.load(p, p.path, lando);
+    }
+
     // Merge in config if we can
     if (_.has(plugin, 'data.config')) lando.config = _.merge(plugin.data.config, lando.config);
 
