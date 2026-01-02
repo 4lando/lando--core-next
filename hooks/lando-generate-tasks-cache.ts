@@ -36,7 +36,9 @@ const loadTasksFromFilesystem = lando => {
 
   // Dynamic require for loading arbitrary task files at runtime
   for (const file of taskFiles) {
-    lando.tasks.push({...require(file)(lando, {}), file});
+    const taskModule = require(file);
+    const taskFn = taskModule.default || taskModule;
+    lando.tasks.push({...taskFn(lando, {}), file});
     lando.log.debug('autoloaded global task %s', path.basename(file, '.js'));
   }
 };

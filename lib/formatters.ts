@@ -123,7 +123,9 @@ export const handleInteractive = (inquiry, argv, command, lando, file) => lando.
       // find index of task
       const tid = lando.tasks.findIndex(task => task.command === command);
       // replace
-      lando.tasks[tid] = require(file)(lando, lando.appConfig);
+      const taskModule = require(file);
+      const taskFn = taskModule.default || taskModule;
+      lando.tasks[tid] = taskFn(lando, lando.appConfig);
     }
 
     // Try to rebuild the inquiry if this is app level bootstrap and we have an app

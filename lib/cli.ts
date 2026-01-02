@@ -470,7 +470,11 @@ export default class Cli {
           // if run is already a function
           if (_.isFunction(run)) return run(data.options, lando, config);
           // if we have a task then do that
-          else if (file && fs.existsSync(file)) return require(file)(lando, config).run(data.options);
+          else if (file && fs.existsSync(file)) {
+            const taskModule = require(file);
+            const taskFn = taskModule.default || taskModule;
+            return taskFn(lando, config).run(data.options);
+          }
           // error?
           throw new Error(`Could not locate a runner for ${command}!`);
         })
