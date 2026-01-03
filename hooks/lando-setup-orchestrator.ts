@@ -1,7 +1,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 import getAxios from '../utils/get-axios.js';
 import debugShim from '../utils/debug-shim.js';

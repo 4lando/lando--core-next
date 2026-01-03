@@ -5,7 +5,7 @@ import {createRequire} from 'module';
 import isObject from 'lodash/isPlainObject';
 import merge from 'lodash/merge';
 import uniq from 'lodash/uniq';
-import debug from 'debug';
+import debug from '../utils/debug.js';
 import stringArgv from 'string-argv';
 import validPath from 'valid-path';
 import {nanoid} from 'nanoid';

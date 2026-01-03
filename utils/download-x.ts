@@ -2,7 +2,7 @@ import spawnSyncStringer from './spawn-sync-stringer.js';
 import makeExecutable from './make-executable.js';
 import mergePromise from './merge-promise.js';
 import getAxios from './get-axios.js';
-import createDebug from 'debug';
+import createDebug from './debug.js';
 
 import fs from 'fs';
 import os from 'os';

@@ -4,7 +4,7 @@ import os from 'os';
 import path from 'path';
 import write from '../utils/write-file.js';
 
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 import {nanoid} from 'nanoid';
 
 import isDisabled from '../utils/is-disabled.js';

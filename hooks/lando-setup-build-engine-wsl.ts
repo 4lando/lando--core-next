@@ -6,7 +6,7 @@ import path from 'path';
 import semver from 'semver';
 import wslpath from '../utils/winpath-2-wslpath.js';
 
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 import {nanoid} from 'nanoid';
 
 import debugShim from '../utils/debug-shim.js';

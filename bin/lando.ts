@@ -11,7 +11,7 @@ import path from 'path';
 import {fileURLToPath} from 'url';
 import _ from 'lodash';
 import argv from '@lando/argv';
-import Debug from 'debug';
+import Debug from '../utils/debug.js';
 
 import defaultConfig from '../utils/get-default-config';
 import getApp from '../utils/get-app';

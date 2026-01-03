@@ -6,7 +6,7 @@ import fs from 'fs';
 import merge from 'lodash/merge';
 import os from 'os';
 import path from 'path';
-import createDebug from 'debug';
+import createDebug from './debug.js';
 import isInteractive from 'is-interactive';
 
 import {nanoid} from 'nanoid';

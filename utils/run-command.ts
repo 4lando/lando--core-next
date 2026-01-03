@@ -2,9 +2,9 @@ import mergePromise from './merge-promise.js';
 
 // Modules
 import merge from 'lodash/merge';
-import {color} from 'listr2';
+import {color} from './listr2.js';
 import {spawn} from 'child_process';
-import createDebug from 'debug';
+import createDebug from './debug.js';
 
 // Create debug logger for this module
 const defaultDebug = createDebug('@lando/run-command');

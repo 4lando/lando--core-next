@@ -1,5 +1,5 @@
 
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 // checks to see if a setting is disabled
 export default ({

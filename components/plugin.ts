@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import fs, {copySync} from '../utils/fs.js';
 import has from 'lodash/has';
 import isClass from 'is-class';
 import makeError from '../utils/make-error.js';
@@ -11,7 +11,7 @@ import read from '../utils/read-file.js';
 import remove from '../utils/remove.js';
 import semver from 'semver';
 import write from '../utils/write-file.js';
-import debug from 'debug';
+import debug from '../utils/debug.js';
 import Arborist from '@npmcli/arborist';
 import npa from 'npm-package-arg';
 import normalizeManifestPaths from '../utils/normalize-manifest-paths.js';
@@ -81,7 +81,7 @@ class Plugin {
       // if we get this far then we can safely move the plugin to dest
       remove(dest);
       fs.mkdirSync(dest, {recursive: true});
-      fs.copySync(tmp, dest, {overwrite: true});
+      copySync(tmp, dest, {overwrite: true});
       Plugin.debug('moved plugin from %o to %o', tmp, dest);
 
       // rewrite package.json so it includes relevant dist stuff from info, this is relevant for updating purposes

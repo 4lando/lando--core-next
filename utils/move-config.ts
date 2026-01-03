@@ -1,7 +1,7 @@
 import makeExecutable from './make-executable.js';
 
 import _ from 'lodash';
-import fs from 'fs-extra';
+import fs, {copySync} from './fs.js';
 import os from 'os';
 import path from 'path';
 import remove from './remove.js';
@@ -11,7 +11,7 @@ export default (src: string, dest: string = os.tmpdir()) => {
 
   try {
     // Filter out .js files to avoid giving the false impression they can be edited
-    fs.copySync(src, dest, {
+    copySync(src, dest, {
       filter: (filepath: string) => path.extname(filepath) !== '.js',
     });
     makeExecutable(_(fs.readdirSync(dest))
@@ -29,7 +29,7 @@ export default (src: string, dest: string = os.tmpdir()) => {
     }
 
     remove(f);
-    fs.copySync(src, dest, {
+    copySync(src, dest, {
       filter: (filepath: string) => path.extname(filepath) !== '.js',
     });
     makeExecutable(_(fs.readdirSync(dest))

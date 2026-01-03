@@ -2,7 +2,7 @@ import getAxios from '../utils/get-axios.js';
 import os from 'os';
 import path from 'path';
 
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 import debugShim from '../utils/debug-shim.js';
 import downloadX from '../utils/download-x.js';

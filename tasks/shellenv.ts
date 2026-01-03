@@ -1,5 +1,5 @@
 import os from 'os';
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 import isRoot from 'is-root';
 import stringArgv from 'string-argv';
 

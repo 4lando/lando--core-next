@@ -1,6 +1,6 @@
 
 import {EOL} from 'os';
-import {DefaultRenderer, ListrEventType} from 'listr2';
+import {DefaultRenderer, ListrEventType} from '../utils/listr2.js';
 import logUpdate from 'log-update';
 import truncate from 'cli-truncate';
 import wrap from 'wrap-ansi';

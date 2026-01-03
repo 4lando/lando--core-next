@@ -1,4 +1,4 @@
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 import getBinPaths from '../utils/get-bin-paths.js';
 

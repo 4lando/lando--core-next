@@ -1,5 +1,5 @@
 import write from '../utils/write-file';
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 export default lando => {
   return {

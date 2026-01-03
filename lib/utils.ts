@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 // Re-exports for backwards compatibility
 import slugify from '../utils/slugify.js';

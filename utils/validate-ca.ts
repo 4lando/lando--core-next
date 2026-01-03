@@ -1,4 +1,4 @@
-import createDebug from 'debug';
+import createDebug from './debug.js';
 const defaultDebug = createDebug('@lando/validate-script');
 
 import forge from 'node-forge';

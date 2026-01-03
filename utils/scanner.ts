@@ -1,6 +1,6 @@
 
 import _ from 'lodash';
-import createDebug from 'debug'; const debug = createDebug('@lando/core:scanner');
+import createDebug from './debug.js'; const debug = createDebug('@lando/core:scanner');
 import getAxios from './get-axios.js';
 
 const request = (maxRedirects = 0) => getAxios({maxRedirects}, {}, {rejectUnauthorized: false});

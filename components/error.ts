@@ -1,4 +1,4 @@
-import debug from 'debug';
+import debug from '../utils/debug.js';
 
 /**
  * Custom error class for Lando

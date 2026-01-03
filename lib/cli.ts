@@ -10,7 +10,7 @@ import sudoBlock from 'sudo-block';
 import isInteractive from 'is-interactive';
 import {ux} from '@oclif/core';
 import {createRequire} from 'module';
-import Debug from 'debug';
+import Debug from '../utils/debug.js';
 
 import formatters from './formatters.js';
 import getSysDataPath from '../utils/get-system-data-dir.js';

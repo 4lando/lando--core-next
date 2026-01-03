@@ -2,7 +2,7 @@ import runCommand from './run-command.js';
 
 // Modules
 import merge from 'lodash/merge';
-import createDebug from 'debug';
+import createDebug from './debug.js';
 
 // Create debug logger
 const defaultDebug = createDebug('@lando/get-wsl-status');

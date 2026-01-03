@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import fs from 'fs';
-import glob from 'glob';
+import glob from '../utils/glob.js';
 import path from 'path';
 import {fileURLToPath} from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));

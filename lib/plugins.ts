@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import fs from 'fs';
-import glob from 'glob';
+import glob from '../utils/glob.js';
 import path from 'path';
 import {createRequire} from 'module';
 
@@ -146,8 +146,11 @@ export default class Plugins {
       // Handle ESM modules that export default vs CommonJS modules
       const pluginFn = typeof mod === 'function' ? mod : (mod.default || mod);
       plugin.data = typeof pluginFn === 'function' ? pluginFn(...injected) : pluginFn;
-    } catch (e) {
-      this.log.error('problem loading plugin %o from %o: %o', plugin.name, file, e.stack);
+    } catch (e: any) {
+      const message = e?.message ?? String(e);
+      const stack = e?.stack ?? 'no stack trace available';
+      this.log.error('problem loading plugin %o from %o: %s', plugin.name, file, message);
+      this.log.debug('plugin %o error stack: %s', plugin.name, stack);
     }
 
     // Register, log, return

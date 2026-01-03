@@ -1,7 +1,7 @@
 
-import slugify from 'slugify';
+import slugify from './slugify.js';
 
-import {color} from 'listr2';
+import {color} from './listr2.js';
 
 const defaults = task => ({
   canInstall: async () => true,

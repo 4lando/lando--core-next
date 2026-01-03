@@ -1,7 +1,7 @@
 
 import _ from 'lodash';
 import fs from 'fs';
-import glob from 'glob';
+import glob from '../utils/glob.js';
 import path from 'path';
 
 import readFile from '../utils/read-file.js';

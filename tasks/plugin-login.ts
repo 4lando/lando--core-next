@@ -1,6 +1,6 @@
 import merge from 'lodash/merge';
 import profile from 'npm-profile';
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 import getPluginConfig from '../utils/get-plugin-config';
 import lopts2Popts from '../utils/lopts-2-popts';

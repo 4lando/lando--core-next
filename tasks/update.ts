@@ -2,7 +2,7 @@ import groupBy from 'lodash/groupBy';
 import merge from 'lodash/merge';
 import sortBy from 'lodash/sortBy';
 
-import {color, figures} from 'listr2';
+import {color, figures} from '../utils/listr2.js';
 
 import getPluginType from '../utils/get-plugin-type';
 

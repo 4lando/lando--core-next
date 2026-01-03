@@ -1,6 +1,6 @@
 import _ from 'lodash';
-import createDebug from 'debug';
-import {color} from 'listr2';
+import createDebug from '../utils/debug.js';
+import {color} from '../utils/listr2.js';
 import delay from 'delay';
 
 import isStringy from '../utils/is-stringy.js';

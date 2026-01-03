@@ -10,7 +10,7 @@ import path from 'path';
 import runElevated from '../utils/run-elevated.js';
 import semver from 'semver';
 
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 const axios = createAxios();
 

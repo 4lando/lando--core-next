@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import {color} from 'listr2';
+import {color} from './listr2.js';
 
 export default ({
   args,

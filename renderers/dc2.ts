@@ -2,7 +2,7 @@
 import LandoRenderer from './lando.js';
 
 import {EOL} from 'os';
-import {color, ListrTaskEventType} from 'listr2';
+import {color, ListrTaskEventType} from '../utils/listr2.js';
 import stripAnsi from 'strip-ansi';
 import range from 'lodash/range';
 

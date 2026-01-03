@@ -1,6 +1,6 @@
 
-import {VerboseRenderer} from 'listr2';
-import createDebug from 'debug';
+import {VerboseRenderer} from '../utils/listr2.js';
+import createDebug from '../utils/debug.js';
 
 const rendererDebug = createDebug('lando:debug-renderer');
 

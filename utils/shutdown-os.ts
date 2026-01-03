@@ -1,4 +1,4 @@
-import createDebug from 'debug';
+import createDebug from './debug.js';
 const defaultDebug = createDebug('@lando/shutdown-os');
 import runElevated from './run-elevated.js';
 import runCommand from './run-command.js';

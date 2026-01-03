@@ -1,55 +1,62 @@
-
-import _debug from 'debug';
-
 import Log from '../lib/logger.js';
+import createDebug from './debug.js';
 
-// adds required methods to ensure the lando v3 debugger can be injected into v4 things
-const debugShim = (log, {namespace} = {}) => {
+const debugShim = (log: Log, {namespace}: {namespace?: string} = {}) => {
   const fresh = new Log({...log.shim, extra: namespace});
 
-  // add sanitization
   fresh.alsoSanitize(/_auth$/);
   fresh.alsoSanitize(/_authToken$/);
   fresh.alsoSanitize(/_password$/);
   fresh.alsoSanitize('forceAuth');
 
-  // spoofer
-  const spoofer = _debug(namespace ?? 'lando');
-  spoofer.diff = 0;
-
-  // we need to start with the function itself and then augment it
-  const debug = (...args) => {
-    args[0] = _debug.coerce(args[0]);
-
-    if (typeof args[0] !== 'string') args.unshift('%O');
-
-    // Apply any `formatters` transformations
-    let index = 0;
-    args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
-      // If we encounter an escaped % then don't increase the array index
-      if (match === '%%') {
-        return '%';
+  const debug = Object.assign(
+    (...args: unknown[]) => {
+      let firstArg = args[0];
+      if (typeof firstArg !== 'string') {
+        args.unshift('%O');
+        firstArg = '%O';
       }
-      index++;
-      const formatter = _debug.formatters[format];
-      if (typeof formatter === 'function') {
-        const val = args[index];
-        match = formatter.call(spoofer, val);
 
-        args.splice(index, 1);
-        index--;
-      }
-      return match;
-    });
+      let index = 0;
+      const formatted = String(firstArg).replace(/%([a-zA-Z%])/g, (match, format) => {
+        if (match === '%%') return '%';
+        index++;
+        if (format === 'O' || format === 'o') {
+          const val = args[index];
+          args.splice(index, 1);
+          index--;
+          try {
+            return JSON.stringify(val, null, 2);
+          } catch {
+            return String(val);
+          }
+        }
+        if (format === 's') {
+          const val = args[index];
+          args.splice(index, 1);
+          index--;
+          return String(val);
+        }
+        if (format === 'd' || format === 'i') {
+          const val = args[index];
+          args.splice(index, 1);
+          index--;
+          return String(parseInt(String(val), 10));
+        }
+        return match;
+      });
 
-    fresh.debug(...args);
-  };
-
-  // contract and replace should do nothing
-  debug.contract = () => debug;
-  debug.replace = () => debug;
-  // extend should just return a new logger
-  debug.extend = name => debugShim(log, {namespace: name});
+      args[0] = formatted;
+      fresh.debug(args[0] as string, ...args.slice(1));
+    },
+    {
+      enabled: true,
+      namespace: namespace ?? 'lando',
+      contract: function() { return debug; },
+      replace: function() { return debug; },
+      extend: (name: string) => debugShim(log, {namespace: name}),
+    }
+  );
 
   return debug;
 };

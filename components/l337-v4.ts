@@ -9,9 +9,9 @@ import read from '../utils/read-file.js';
 import remove from '../utils/remove.js';
 import write from '../utils/write-file.js';
 import uniq from 'lodash/uniq';
-import debug from 'debug';
+import debug from '../utils/debug.js';
 
-import {generateDockerFileFromArray} from 'dockerfile-generator/lib/dockerGenerator';
+import {generateDockerFileFromArray} from '../utils/generate-dockerfile.js';
 import {nanoid} from 'nanoid';
 import {EventEmitter} from 'events';
 

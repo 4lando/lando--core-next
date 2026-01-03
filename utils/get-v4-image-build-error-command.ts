@@ -1,5 +1,5 @@
 
-import {color} from 'listr2';
+import {color} from './listr2.js';
 import write from './write-file.js';
 
 export default ({

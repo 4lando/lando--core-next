@@ -1,4 +1,4 @@
-import createDebug from 'debug';
+import createDebug from './debug.js';
 const defaultDebug = createDebug('@lando/link-bin');
 import getPosixbinContents from './get-posixbin-contents.js';
 import getWinbinContents from './get-winbin-contents.js';

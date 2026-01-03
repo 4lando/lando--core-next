@@ -3,8 +3,8 @@ import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
 import Enquirer from 'enquirer';
-import {Listr} from 'listr2';
-import createDebug from 'debug';
+import {Listr} from './listr2.js';
+import createDebug from './debug.js';
 import isInteractive from 'is-interactive';
 
 // Create debug logger for task runner

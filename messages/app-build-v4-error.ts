@@ -1,5 +1,5 @@
 
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 
 const {bold} = color;
 

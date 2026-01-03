@@ -1,4 +1,4 @@
-import debug from 'debug';
+import debug from '../utils/debug.js';
 import fs from 'fs';
 import get from 'lodash/get';
 import _ from 'lodash';
@@ -6,7 +6,7 @@ import os from 'os';
 import path from 'path';
 import semver from 'semver';
 import uniqBy from 'lodash/uniqBy';
-import {color} from 'listr2';
+import {color} from '../utils/listr2.js';
 import isRoot from 'is-root';
 import stringArgv from 'string-argv';
 

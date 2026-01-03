@@ -4,7 +4,7 @@ import mergePromise from './merge-promise.js';
 import merge from 'lodash/merge';
 import read from './read-file.js';
 import winpath from './wslpath-2-winpath.js';
-import createDebug from 'debug';
+import createDebug from './debug.js';
 
 import {spawn, spawnSync} from 'child_process';
 
