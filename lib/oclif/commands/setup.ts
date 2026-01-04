@@ -64,7 +64,7 @@ const getStatusTable = (items: any[]) => ({
 
 export default class Setup extends LandoCommand<typeof Setup> {
   static override description = 'Runs the Lando setup process to install dependencies';
-
+  static override hidden = true;
   static override level = 'engine' as const;
 
   static override examples = [

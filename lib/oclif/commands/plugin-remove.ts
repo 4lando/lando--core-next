@@ -7,6 +7,7 @@ import runTasks from '../../../utils/run-tasks.js';
 export default class PluginRemove extends LandoCommand<typeof PluginRemove> {
   static id = 'plugin:remove';
   static description = 'Removes a plugin from Lando';
+  static hidden = true;
   static level = 'tasks' as const;
   static aliases = ['plugin-remove'];
 

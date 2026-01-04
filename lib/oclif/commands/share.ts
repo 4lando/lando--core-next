@@ -4,6 +4,7 @@ import { shareWait } from '../../art.js';
 export default class Share extends LandoCommand<typeof Share> {
   static id = 'share';
   static description = 'Shares your local site publicly';
+  static hidden = true;
   static level = 'app' as const;
 
   static flags = {

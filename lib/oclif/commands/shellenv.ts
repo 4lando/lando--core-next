@@ -7,6 +7,7 @@ import updateShellProfile from '../../../utils/update-shell-profile.js';
 export default class Shellenv extends LandoCommand<typeof Shellenv> {
   static id = 'shellenv';
   static description = 'Prints or modifies shell environment configuration';
+  static hidden = true;
   static level = 'tasks' as const;
 
   static flags = {

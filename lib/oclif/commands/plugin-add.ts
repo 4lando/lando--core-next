@@ -9,6 +9,7 @@ const Plugin = PluginClass as any;
 export default class PluginAdd extends LandoCommand<typeof PluginAdd> {
   static id = 'plugin:add';
   static description = 'Adds a plugin to Lando';
+  static hidden = true;
   static level = 'tasks' as const;
   static aliases = ['plugin-add'];
 

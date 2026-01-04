@@ -8,6 +8,8 @@ import _ from 'lodash';
 import argv from '@lando/argv';
 import {execute} from '@oclif/core';
 
+import {registerCommand} from '../lib/oclif/commands.js';
+import {createToolingCommands} from '../lib/oclif/tooling-command.js';
 import Debug from '../utils/debug.js';
 import defaultConfig from '../utils/get-default-config.js';
 import getApp from '../utils/get-app.js';
@@ -85,5 +87,13 @@ if (bsLevel === 'app' && !fs.existsSync(appConfig.composeCache)) {
 }
 
 debug('bootstrap level determined as %o', bsLevel);
+
+if (appConfig.tooling && Object.keys(appConfig.tooling).length > 0) {
+  const toolingCommands = createToolingCommands(appConfig.tooling, appConfig.name, appConfig);
+  for (const [name, command] of toolingCommands) {
+    registerCommand(name, command);
+    debug('registered dynamic tooling command %o', name);
+  }
+}
 
 await execute({dir: path.join(__dirname, '..')});

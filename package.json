@@ -30,7 +30,8 @@
       "prerun": "./lib/oclif/hooks/prerun.ts",
       "postrun": "./lib/oclif/hooks/postrun.ts"
     },
-    "flexibleTaxonomy": true
+    "flexibleTaxonomy": true,
+    "helpClass": "./lib/oclif/help.ts"
   },
   "main": "lib/lando.ts",
   "types": "types/index.d.ts",

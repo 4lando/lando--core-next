@@ -9,6 +9,7 @@ import write from '../../../utils/write-file.js';
 export default class PluginLogin extends LandoCommand<typeof PluginLogin> {
   static override id = 'plugin:login';
   static override description = 'Logs into a plugin registry';
+  static hidden = true;
   static level = 'tasks' as const;
   static override aliases = ['plugin-login'];
 

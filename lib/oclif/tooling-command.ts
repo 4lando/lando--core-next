@@ -1,6 +1,6 @@
 import { Args, Command, Flags } from '@oclif/core';
 
-import { Lando } from '../lando.js';
+import Lando from '../lando.js';
 import buildToolingRunner from '../../utils/build-tooling-runner.js';
 import buildDockerExec from '../../utils/build-docker-exec.js';
 import getToolingDefaults from '../../utils/get-tooling-defaults.js';

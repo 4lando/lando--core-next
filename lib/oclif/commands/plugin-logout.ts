@@ -5,6 +5,7 @@ import write from '../../../utils/write-file.js';
 export default class PluginLogout extends LandoCommand<typeof PluginLogout> {
   static override id = 'plugin:logout';
   static override description = 'Logs out of all plugin registries';
+  static hidden = true;
   static level = 'tasks' as const;
   static override aliases = ['plugin-logout'];
 

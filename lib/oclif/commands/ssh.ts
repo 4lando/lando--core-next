@@ -8,6 +8,7 @@ import { LandoCommand, globalFlags } from '../base-command.js';
 export default class Ssh extends LandoCommand<typeof Ssh> {
   static override id = 'ssh';
   static override description = 'Drops into a shell on a service, runs commands';
+  static override hidden = true;
   static override level = 'app' as const;
   static override strict = false;
 
