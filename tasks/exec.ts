@@ -86,8 +86,6 @@ export default (lando, config = lando.appConfig) => ({
 
     // collect, usage throw
     } catch (error) {
-      if (options?._yargs?.showHelp) options._yargs.showHelp();
-      console.log('');
       throw error;
     }
 
