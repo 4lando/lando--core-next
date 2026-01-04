@@ -8,8 +8,7 @@ interface Debug extends DebugFunction {
   extend: (suffix: string) => Debug;
 }
 
-const DEBUG = process.env.DEBUG || '';
-const debugPatterns = DEBUG.split(',').map(p => p.trim()).filter(Boolean);
+let debugPatterns: string[] = (process.env.DEBUG || '').split(',').map(p => p.trim()).filter(Boolean);
 
 function matchesPattern(namespace: string): boolean {
   if (debugPatterns.length === 0) return false;
@@ -61,6 +60,8 @@ function formatArgs(args: unknown[]): string[] {
   });
 }
 
+const debugInstances: Debug[] = [];
+
 function createDebug(namespace: string): Debug {
   const enabled = matchesPattern(namespace);
   const color = getColor();
@@ -84,7 +85,24 @@ function createDebug(namespace: string): Debug {
   debug.namespace = namespace;
   debug.extend = (suffix: string) => createDebug(`${namespace}:${suffix}`);
 
+  debugInstances.push(debug);
+
   return debug;
 }
+
+/**
+ * Enable debugging for the given namespace pattern(s).
+ * Patterns can be comma-separated, support wildcards (*), and exclusions (-prefix).
+ * @param {string} namespaces - Comma-separated namespace patterns to enable
+ * @example
+ * createDebug.enable('lando*')
+ * createDebug.enable('lando:app,lando:engine')
+ */
+createDebug.enable = function(namespaces: string): void {
+  debugPatterns = namespaces.split(',').map(p => p.trim()).filter(Boolean);
+  for (const debug of debugInstances) {
+    debug.enabled = matchesPattern(debug.namespace);
+  }
+};
 
 export default createDebug;
