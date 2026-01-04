@@ -1,5 +1,5 @@
-import { Flags } from '@oclif/core';
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {Flags} from '@oclif/core';
+import {LandoCommand, globalFlags} from '../base-command.js';
 
 export default class List extends LandoCommand<typeof List> {
   static id = 'list';
@@ -36,7 +36,7 @@ export default class List extends LandoCommand<typeof List> {
   ];
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(List);
+    const {flags} = await this.parse(List);
     const lando = await this.bootstrap('engine');
 
     const containers = await lando.engine.list({

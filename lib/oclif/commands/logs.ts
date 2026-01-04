@@ -1,5 +1,5 @@
-import { Flags } from '@oclif/core';
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {Flags} from '@oclif/core';
+import {LandoCommand, globalFlags} from '../base-command.js';
 import landoRunSetup from '../../../hooks/lando-run-setup.js';
 
 export default class Logs extends LandoCommand<typeof Logs> {
@@ -27,24 +27,24 @@ export default class Logs extends LandoCommand<typeof Logs> {
   };
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Logs);
-    
+    const {flags} = await this.parse(Logs);
+
     await this.bootstrap('app');
     await landoRunSetup(this.lando);
-    
+
     const app = await this.lando.getApp(this.getAppRoot());
     if (!app) {
       this.error('Could not find Lando app in current directory');
       return;
     }
     await app.init();
-    
+
     const logOptions = {
       follow: flags.follow,
       timestamps: flags.timestamps,
       services: flags.service ?? Object.keys(app.services),
     };
-    
+
     await this.lando.engine.logs(app.project, logOptions);
   }
 }

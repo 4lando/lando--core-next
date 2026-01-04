@@ -1,4 +1,5 @@
-import { Args, Command, Flags } from '@oclif/core';
+/* eslint-disable require-jsdoc */
+import {Args, Command, Flags} from '@oclif/core';
 
 import Lando from '../lando.js';
 import buildToolingRunner from '../../utils/build-tooling-runner.js';
@@ -49,12 +50,12 @@ export interface ToolingConfig {
 
 function convertOptionsToFlags(options: Record<string, ToolingOption> = {}) {
   const flags: Record<string, unknown> = {};
-  
+
   for (const [name, opt] of Object.entries(options)) {
-    const charValue = opt.alias 
+    const charValue = opt.alias
       ? (Array.isArray(opt.alias) ? opt.alias[0] : opt.alias)[0] as 'a'
       : undefined;
-    
+
     if (opt.boolean) {
       flags[name] = Flags.boolean({
         description: opt.describe,
@@ -77,13 +78,13 @@ function convertOptionsToFlags(options: Record<string, ToolingOption> = {}) {
       });
     }
   }
-  
+
   return flags;
 }
 
 function convertPositionalsToArgs(positionals: Record<string, ToolingPositional> = {}) {
   const args: Record<string, ReturnType<typeof Args.string>> = {};
-  
+
   for (const [name, pos] of Object.entries(positionals)) {
     args[name] = Args.string({
       description: pos.describe,
@@ -92,7 +93,7 @@ function convertPositionalsToArgs(positionals: Record<string, ToolingPositional>
       options: pos.choices,
     });
   }
-  
+
   return args;
 }
 
@@ -103,38 +104,38 @@ export function createToolingCommand(
   appConfig: Record<string, unknown>,
 ): typeof Command {
   const eventName = name.split(' ')[0];
-  
+
   class ToolingCommandImpl extends Command {
     static id = name;
     static description = config.describe || `Run ${name} commands`;
     static examples = config.examples || [];
     static strict = false;
-    
+
     static flags = {
-      debug: Flags.boolean({ char: 'd', description: 'Enable debug mode' }),
-      verbose: Flags.integer({ char: 'v', description: 'Verbosity level', default: 0 }),
+      debug: Flags.boolean({char: 'd', description: 'Enable debug mode'}),
+      verbose: Flags.integer({char: 'v', description: 'Verbosity level', default: 0}),
       ...convertOptionsToFlags(config.options),
     };
-    
+
     static args = convertPositionalsToArgs(config.positionals);
-    
+
     async run(): Promise<void> {
-      const { args, flags, argv } = await this.parse(ToolingCommandImpl);
-      
+      const {args, flags, argv} = await this.parse(ToolingCommandImpl);
+
       const lando = new Lando(appConfig);
       await lando.bootstrap(config.level === 'engine' ? 'engine' : 'app');
-      
+
       const app = await lando.getApp(lando.config.landoFile);
       if (!app) {
         throw new Error('Could not find Lando app configuration');
       }
-      
+
       if (config.level !== 'engine') {
         await app.init();
       }
-      
-      await lando.events.emit(`pre-${eventName}`, { ...args, ...flags });
-      
+
+      await lando.events.emit(`pre-${eventName}`, {...args, ...flags});
+
       const defaults = (getToolingDefaults as (opts: Record<string, unknown>) => Record<string, unknown>)({
         name,
         app: app.config || {},
@@ -148,10 +149,10 @@ export function createToolingCommand(
         stdio: 'inherit',
         user: config.user || null,
       });
-      
-      const toolingConfigs = parseToolingConfig(name, defaults, { ...args, ...flags }, argv as string[]);
+
+      const toolingConfigs = parseToolingConfig(name, defaults, {...args, ...flags}, argv as string[]);
       const docker = getDockerBinPath();
-      
+
       for (const cmd of toolingConfigs) {
         const runner = buildToolingRunner(
           app,
@@ -164,13 +165,13 @@ export function createToolingCommand(
         );
         await buildDockerExec(docker, runner);
       }
-      
-      await lando.events.emit(`post-${eventName}`, { ...args, ...flags });
+
+      await lando.events.emit(`post-${eventName}`, {...args, ...flags});
     }
   }
-  
-  Object.defineProperty(ToolingCommandImpl, 'name', { value: `Tooling_${name.replace(/\s+/g, '_')}` });
-  
+
+  Object.defineProperty(ToolingCommandImpl, 'name', {value: `Tooling_${name.replace(/\s+/g, '_')}`});
+
   return ToolingCommandImpl;
 }
 
@@ -180,13 +181,13 @@ export function createToolingCommands(
   appConfig: Record<string, unknown>,
 ): Map<string, typeof Command> {
   const commands = new Map<string, typeof Command>();
-  
+
   for (const [name, cmdConfig] of Object.entries(tooling)) {
     if (cmdConfig.disabled) continue;
-    
+
     const command = createToolingCommand(name, cmdConfig, appName, appConfig);
     commands.set(name, command);
   }
-  
+
   return commands;
 }

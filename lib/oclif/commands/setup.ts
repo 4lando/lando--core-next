@@ -80,10 +80,10 @@ export default class Setup extends LandoCommand<typeof Setup> {
       description: 'Accepts the Docker Desktop license during install',
       default: false,
     }),
-    orchestrator: Flags.string({
+    'orchestrator': Flags.string({
       description: 'Sets the version of the orchestrator (docker-compose) to install',
     }),
-    plugin: Flags.string({
+    'plugin': Flags.string({
       description: 'Sets additional plugin(s) to install',
       multiple: true,
       default: [],
@@ -101,7 +101,7 @@ export default class Setup extends LandoCommand<typeof Setup> {
       default: false,
       hidden: true,
     }),
-    yes: Flags.boolean({
+    'yes': Flags.boolean({
       char: 'y',
       description: 'Runs non-interactively with all accepted default answers',
       default: false,
@@ -110,21 +110,20 @@ export default class Setup extends LandoCommand<typeof Setup> {
 
   async run(): Promise<void> {
     const defaults = (this.lando.config as any).setup ?? {};
-    const buildEngine = process.platform === 'linux' ? 'docker-engine' : 'docker-desktop';
 
     console.log(this.makeArt('setupHeader'));
 
     const options: any = {
       'build-engine': this.flags['build-engine'] ?? defaults.buildEngine,
       'build-engine-accept-license': this.flags['build-engine-accept-license'] ?? defaults.buildEngineAcceptLicense,
-      orchestrator: this.flags.orchestrator ?? defaults.orchestrator,
-      plugin: this.flags.plugin.length > 0 ? this.flags.plugin : parseToPluginStrings(defaults.plugins ?? {}),
+      'orchestrator': this.flags.orchestrator ?? defaults.orchestrator,
+      'plugin': this.flags.plugin.length > 0 ? this.flags.plugin : parseToPluginStrings(defaults.plugins ?? {}),
       'skip-common-plugins': this.flags['skip-common-plugins'] ?? defaults.skipCommonPlugins,
       'skip-install-ca': this.flags['skip-install-ca'] ?? defaults.skipInstallCa,
       'skip-networking': this.flags['skip-networking'] ?? defaults.skipNetworking,
-      yes: this.flags.yes ?? !(this.lando.config as any).isInteractive,
-      plugins: {},
-      tasks: [],
+      'yes': this.flags.yes ?? !(this.lando.config as any).isInteractive,
+      'plugins': {},
+      'tasks': [],
     };
 
     for (const plugin of options.plugin) {
@@ -208,7 +207,8 @@ export default class Setup extends LandoCommand<typeof Setup> {
     console.log('');
 
     if (errors.length === 0 && results.length === 0) {
-      console.log(`As far as ${color.bold('lando setup')} can tell you are ${color.green('good to go')} and do not require additional setup!`);
+      const msg = `As far as ${color.bold('lando setup')} can tell you are ${color.green('good to go')}`;
+      console.log(`${msg} and do not require additional setup!`);
       return;
     }
 

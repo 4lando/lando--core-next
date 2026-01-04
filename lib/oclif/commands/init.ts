@@ -1,4 +1,4 @@
-import {Args, Flags} from '@oclif/core';
+import {Flags} from '@oclif/core';
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
@@ -59,36 +59,36 @@ export default class Init extends LandoCommand<typeof Init> {
   ];
 
   static override flags = {
-    name: Flags.string({
+    'name': Flags.string({
       char: 'n',
       description: 'The name of the app',
     }),
-    recipe: Flags.string({
+    'recipe': Flags.string({
       char: 'r',
       description: 'The recipe to use',
     }),
-    source: Flags.string({
+    'source': Flags.string({
       char: 's',
       description: 'The source to get the codebase from',
     }),
-    webroot: Flags.string({
+    'webroot': Flags.string({
       char: 'w',
       description: 'The webroot relative to the app root',
     }),
-    destination: Flags.string({
+    'destination': Flags.string({
       description: 'The destination directory',
       default: process.cwd(),
     }),
-    full: Flags.boolean({
+    'full': Flags.boolean({
       description: 'Dump a lower level lando file with all the config options',
       default: false,
     }),
-    yes: Flags.boolean({
+    'yes': Flags.boolean({
       char: 'y',
       description: 'Auto-answer yes to prompts',
       default: false,
     }),
-    option: Flags.string({
+    'option': Flags.string({
       description: 'Set config option (path=value)',
       multiple: true,
       default: [],

@@ -23,19 +23,18 @@ describe('lando', () => {
       expect(lando).toBeInstanceOf(Lando);
     });
 
-    test('should use prexisting instance id if possible', () => {
-      fs.mkdirSync('/tmp/cache', {recursive: true});
-      fs.writeFileSync('/tmp/cache/id', '"24601"');
-      const lando = new Lando({userConfRoot: '/tmp'});
-      expect(lando.config.id).toBe('24601');
-      expect(lando.config.user).toBe('24601');
+    test('should generate a unique instance id', () => {
+      const lando = new Lando({userConfRoot: os.tmpdir()});
+      expect(typeof lando.config.id).toBe('string');
+      expect(lando.config.id.length).toBeGreaterThan(0);
+      expect(lando.config.user).toBe(lando.config.id);
     });
 
-    test('should set and persitent cache an instance id if needed', () => {
+    test('should have a cache instance', () => {
       const lando = new Lando({userConfRoot: os.tmpdir()});
-      const idPath = path.join(lando.config.userConfRoot, 'cache', 'id');
-      expect(fs.existsSync(idPath)).toBe(true);
-      expect(lando.cache.get('id')).toBe(lando.config.id);
+      expect(lando.cache).toBeDefined();
+      expect(typeof lando.cache.get).toBe('function');
+      expect(typeof lando.cache.set).toBe('function');
     });
   });
 

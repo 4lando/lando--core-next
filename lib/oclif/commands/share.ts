@@ -1,5 +1,5 @@
-import { LandoCommand, globalFlags } from '../base-command.js';
-import { shareWait } from '../../art.js';
+import {LandoCommand, globalFlags} from '../base-command.js';
+import {shareWait} from '../../art.js';
 
 export default class Share extends LandoCommand<typeof Share> {
   static id = 'share';

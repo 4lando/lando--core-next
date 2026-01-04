@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 import type {Command} from '@oclif/core';
 
 import Config from './commands/config.js';
@@ -24,28 +25,28 @@ import Update from './commands/update.js';
 import Version from './commands/version.js';
 
 const COMMANDS: Record<string, typeof Command> = {
-  config: Config as unknown as typeof Command,
-  destroy: Destroy as unknown as typeof Command,
-  exec: Exec as unknown as typeof Command,
-  info: Info as unknown as typeof Command,
-  init: Init as unknown as typeof Command,
-  list: List as unknown as typeof Command,
-  logs: Logs as unknown as typeof Command,
+  'config': Config as unknown as typeof Command,
+  'destroy': Destroy as unknown as typeof Command,
+  'exec': Exec as unknown as typeof Command,
+  'info': Info as unknown as typeof Command,
+  'init': Init as unknown as typeof Command,
+  'list': List as unknown as typeof Command,
+  'logs': Logs as unknown as typeof Command,
   'plugin-add': PluginAdd as unknown as typeof Command,
   'plugin-login': PluginLogin as unknown as typeof Command,
   'plugin-logout': PluginLogout as unknown as typeof Command,
   'plugin-remove': PluginRemove as unknown as typeof Command,
-  poweroff: Poweroff as unknown as typeof Command,
-  rebuild: Rebuild as unknown as typeof Command,
-  restart: Restart as unknown as typeof Command,
-  setup: Setup as unknown as typeof Command,
-  share: Share as unknown as typeof Command,
-  shellenv: Shellenv as unknown as typeof Command,
-  ssh: Ssh as unknown as typeof Command,
-  start: Start as unknown as typeof Command,
-  stop: Stop as unknown as typeof Command,
-  update: Update as unknown as typeof Command,
-  version: Version as unknown as typeof Command,
+  'poweroff': Poweroff as unknown as typeof Command,
+  'rebuild': Rebuild as unknown as typeof Command,
+  'restart': Restart as unknown as typeof Command,
+  'setup': Setup as unknown as typeof Command,
+  'share': Share as unknown as typeof Command,
+  'shellenv': Shellenv as unknown as typeof Command,
+  'ssh': Ssh as unknown as typeof Command,
+  'start': Start as unknown as typeof Command,
+  'stop': Stop as unknown as typeof Command,
+  'update': Update as unknown as typeof Command,
+  'version': Version as unknown as typeof Command,
 };
 
 export default COMMANDS;

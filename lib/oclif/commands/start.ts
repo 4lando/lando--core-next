@@ -1,4 +1,4 @@
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {LandoCommand, globalFlags} from '../base-command.js';
 
 export default class Start extends LandoCommand<typeof Start> {
   static id = 'start';
@@ -28,7 +28,7 @@ export default class Start extends LandoCommand<typeof Start> {
 
     const info = app.info || [];
     if (info.length > 0) {
-      this.formatData(info, { format: 'table' });
+      this.formatData(info, {format: 'table'});
     }
   }
 }

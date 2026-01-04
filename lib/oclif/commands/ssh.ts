@@ -1,9 +1,9 @@
-import { Args, Flags } from '@oclif/core';
+import {Flags} from '@oclif/core';
 import landoRunSetup from '../../../hooks/lando-run-setup.js';
 import buildToolingRunner from '../../../utils/build-tooling-runner.js';
 import buildDockerExec from '../../../utils/build-docker-exec.js';
 import getUser from '../../../utils/get-user.js';
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {LandoCommand, globalFlags} from '../base-command.js';
 
 export default class Ssh extends LandoCommand<typeof Ssh> {
   static override id = 'ssh';
@@ -30,7 +30,7 @@ export default class Ssh extends LandoCommand<typeof Ssh> {
   };
 
   async run(): Promise<void> {
-    const { flags, argv } = await this.parse(Ssh);
+    const {flags, argv} = await this.parse(Ssh);
     const lando = await this.bootstrap('app');
     await landoRunSetup(lando);
 
@@ -43,7 +43,7 @@ export default class Ssh extends LandoCommand<typeof Ssh> {
 
     const service = flags.service || 'appserver';
     const command = flags.command || (argv.length > 0 ? argv.join(' ') : undefined);
-    
+
     const serviceInfo = app.info?.[service];
     const appMount = serviceInfo?.appMount || '/app';
     const user = flags.user || getUser(service, app.info);
@@ -55,7 +55,7 @@ export default class Ssh extends LandoCommand<typeof Ssh> {
       user,
       {},
       undefined,
-      appMount
+      appMount,
     );
 
     await buildDockerExec(lando.config.dockerBin, runner);

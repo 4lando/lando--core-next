@@ -1,5 +1,5 @@
-import { Flags } from '@oclif/core';
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {Flags} from '@oclif/core';
+import {LandoCommand, globalFlags} from '../base-command.js';
 import get from 'lodash/get.js';
 
 export default class Config extends LandoCommand<typeof Config> {
@@ -31,7 +31,7 @@ export default class Config extends LandoCommand<typeof Config> {
   };
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Config);
+    const {flags} = await this.parse(Config);
     const lando = await this.bootstrap('tasks');
 
     let data: unknown = lando.config;

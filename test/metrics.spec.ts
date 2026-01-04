@@ -1,9 +1,9 @@
 import {describe, expect, test, jest, afterEach} from 'bun:test';
 import _ from 'lodash';
 import axios from 'axios';
-import {EventEmitter} from 'events';
 import Promise from './../lib/promise.js';
 import Metrics from './../lib/metrics.js';
+import Log from './../lib/logger.js';
 
 describe('metrics', () => {
   afterEach(() => {
@@ -19,7 +19,7 @@ describe('metrics', () => {
       expect(metrics.endpoints.length).toBe(0);
       expect(metrics.data).toBeInstanceOf(Object);
       expect(Object.keys(metrics.data).length).toBe(0);
-      expect(metrics.log).toBeInstanceOf(EventEmitter);
+      expect(metrics.log).toBeInstanceOf(Log);
     });
 
     test('should return a Metrics instance with user options', () => {
@@ -30,7 +30,7 @@ describe('metrics', () => {
       expect(metrics.endpoints.length).toBe(2);
       expect(metrics.endpoints.length).toBeGreaterThan(0);
       expect(Object.keys(metrics.data).length).toBeGreaterThan(0);
-      expect(metrics.log).toBeInstanceOf(EventEmitter);
+      expect(metrics.log).toBeInstanceOf(Log);
     });
   });
 

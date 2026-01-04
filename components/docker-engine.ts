@@ -10,7 +10,6 @@ import stringArgv from 'string-argv';
 import {DockerClient} from '../lib/docker-effect.js';
 import {EventEmitter} from 'events';
 import {nanoid} from 'nanoid';
-import {PassThrough} from 'stream';
 
 import makeError from '../utils/make-error.js';
 import makeSuccess from '../utils/make-success.js';
@@ -87,7 +86,11 @@ class DockerEngine {
           resolve(makeSuccess(merge({}, args, {stdout: output[output.length - 1]?.status || '', all: '', stderr: ''})));
         });
         builder.on('error', (error: Error) => {
-          reject(makeError(merge({}, args, {error, all: '', code: 1, context: '', errorCode: '', short: '', statusCode: 1, stdout: '', stderr: error.message})));
+          const errPayload = {
+            error, all: '', code: 1, context: '', errorCode: '',
+            short: '', statusCode: 1, stdout: '', stderr: error.message,
+          };
+          reject(makeError(merge({}, args, errPayload)));
         });
       });
     };
@@ -307,7 +310,11 @@ class DockerEngine {
           resolve(makeSuccess(merge({}, args, {stdout: output[output.length - 1]?.status || '', all: '', stderr: ''})));
         });
         puller.on('error', (error: Error) => {
-          reject(makeError(merge({}, args, {error, all: '', code: 1, context: '', errorCode: '', short: '', statusCode: 1, stdout: '', stderr: error.message})));
+          const errPayload = {
+            error, all: '', code: 1, context: '', errorCode: '',
+            short: '', statusCode: 1, stdout: '', stderr: error.message,
+          };
+          reject(makeError(merge({}, args, errPayload)));
         });
       });
     };
@@ -375,7 +382,11 @@ class DockerEngine {
           resolve(makeSuccess(merge({}, {command: cmdArray, args: cmdArray}, data, {all: data.stdout + data.stderr})));
         });
         runner.on('error', (error: Error) => {
-          reject(makeError(merge({}, {command: cmdArray, args: cmdArray, error, all: '', code: 1, context: '', errorCode: '', short: '', statusCode: 1, stdout: '', stderr: error.message})));
+          const errPayload = {
+            error, all: '', code: 1, context: '', errorCode: '',
+            short: '', statusCode: 1, stdout: '', stderr: error.message,
+          };
+          reject(makeError(merge({}, {command: cmdArray, args: cmdArray}, errPayload)));
         });
       });
     };
@@ -385,29 +396,29 @@ class DockerEngine {
 
     const useImage = tag || image;
     const args = ['run', '--rm'];
-    
+
     if (interactive) {
       args.push('-it');
     }
-    
+
     if (createOptions.HostConfig && (createOptions.HostConfig as Record<string, unknown>).Binds) {
       const binds = (createOptions.HostConfig as Record<string, unknown>).Binds as string[];
       for (const bind of binds) {
         args.push('-v', bind);
       }
     }
-    
+
     if (createOptions.Env) {
       const envVars = createOptions.Env as string[];
       for (const env of envVars) {
         args.push('-e', env);
       }
     }
-    
+
     if (createOptions.WorkingDir) {
       args.push('-w', createOptions.WorkingDir as string);
     }
-    
+
     if (createOptions.User) {
       args.push('-u', createOptions.User as string);
     }
@@ -421,7 +432,7 @@ class DockerEngine {
 
     let stdout = '';
     let stderr = '';
-    
+
     cmd.stdout?.on('data', (data: Buffer) => {
       const str = data.toString();
       stdout += str;

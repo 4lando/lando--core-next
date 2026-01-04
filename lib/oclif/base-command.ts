@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc, valid-jsdoc */
 import {Command, Flags, Interfaces} from '@oclif/core';
 import path from 'path';
 import fs from 'fs';
@@ -86,6 +87,7 @@ export abstract class LandoCommand<T extends typeof Command> extends Command {
   protected logLevel = 'warn';
   protected userConfRoot = path.join(os.homedir(), '.lando');
   protected coreBase = path.resolve(import.meta.dirname, '..', '..');
+  // eslint-disable-next-line new-cap
   protected debug: ReturnType<typeof Debug> = Debug('@lando/cli');
   protected chalk = chalk;
 
@@ -119,7 +121,7 @@ export abstract class LandoCommand<T extends typeof Command> extends Command {
 
   /**
    * Handle global flags that should exit early (clear, channel, experimental)
-   * @returns true if should exit
+   * @return true if should exit
    */
   protected async handleGlobalFlags(): Promise<boolean> {
     const {clear, channel, experimental} = this.flags;
@@ -182,12 +184,12 @@ export abstract class LandoCommand<T extends typeof Command> extends Command {
       clearTaskCaches: () => this.clearTaskCaches(),
       confirm: (message?: string) => this.confirm(message),
       defaultConfig: (appConfig?: Record<string, unknown>) => this.defaultConfig(appConfig),
-      formatData: (data: unknown, opts?: Record<string, unknown>, extra?: Record<string, unknown>) => 
+      formatData: (data: unknown, opts?: Record<string, unknown>, extra?: Record<string, unknown>) =>
         this.formatData(data, opts, extra),
       formatOptions: (omit?: string[]) => this.formatOptions(omit),
       getInquirer: () => inquirer,
       getUX: () => ux,
-      handleError: (error: Error, handler: unknown, verbose?: number, lando?: Lando, yes?: boolean) =>
+      handleError: (error: Error, _handler: unknown, _verbose?: number, lando?: Lando) =>
         this.handleError(error, lando),
       isDebug: () => this.isDebug(),
       makeArt: (func: string, opts?: unknown) => this.makeArt(func, opts),
@@ -323,10 +325,12 @@ export abstract class LandoCommand<T extends typeof Command> extends Command {
     {path = '', format = 'default', filter = []}: {path?: string; format?: string; filter?: string[]} = {},
     opts: Record<string, unknown> = {},
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     return (formatters.formatData as Function)(data, {path, format, filter}, opts);
   }
 
   protected formatOptions(omit: string[] = []) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     return (formatters.formatOptions as Function)(omit);
   }
 
@@ -434,6 +438,7 @@ export abstract class LandoCommand<T extends typeof Command> extends Command {
 
 // Extend process type for Lando globals
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     interface Process {
       landoTaskCacheFile?: string;

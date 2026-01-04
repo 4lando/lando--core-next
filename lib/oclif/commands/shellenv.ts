@@ -1,5 +1,5 @@
-import { Flags } from '@oclif/core';
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {Flags} from '@oclif/core';
+import {LandoCommand, globalFlags} from '../base-command.js';
 import getBinPaths from '../../../utils/get-bin-paths.js';
 import getShellEnv from '../../../utils/get-shellenv.js';
 import updateShellProfile from '../../../utils/update-shell-profile.js';
@@ -22,11 +22,11 @@ export default class Shellenv extends LandoCommand<typeof Shellenv> {
   };
 
   async run(): Promise<void> {
-    const { flags } = await this.parse(Shellenv);
+    const {flags} = await this.parse(Shellenv);
     const lando = await this.bootstrap('tasks');
 
     const binPaths = getBinPaths(lando.config);
-    
+
     if (flags.add) {
       await (updateShellProfile as any)(flags.add, binPaths);
       this.log(`Added lando to ${flags.add} shell profile`);

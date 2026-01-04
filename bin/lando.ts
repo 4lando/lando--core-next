@@ -37,6 +37,7 @@ if (argv.hasOption('--debug')) {
   Debug.enable(argv.getOption('--debug', {defaultValue: `${id}*`}) as string);
 }
 
+// eslint-disable-next-line new-cap
 const debug = Debug(id || 'lando');
 debug('starting %o version %o with OCLIF...', id, pjson.version);
 
@@ -60,7 +61,7 @@ if (config.envPrefix) {
 debug('final assembled minconf is %O', config);
 
 const {preLandoFiles, landoFile, postLandoFiles, userConfRoot} = config as Record<string, unknown>;
-const landoFiles = (getLandoFiles as Function)(
+const landoFiles = (getLandoFiles as (...args: unknown[]) => string[])(
   [preLandoFiles as string[], [landoFile as string], postLandoFiles as string[]].flat(1),
 ) as string[];
 const appConfig = landoFiles.length > 0 ? getApp(landoFiles, userConfRoot as string) : {};

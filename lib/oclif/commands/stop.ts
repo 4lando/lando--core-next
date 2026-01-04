@@ -1,4 +1,4 @@
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {LandoCommand, globalFlags} from '../base-command.js';
 
 export default class Stop extends LandoCommand<typeof Stop> {
   static id = 'stop';

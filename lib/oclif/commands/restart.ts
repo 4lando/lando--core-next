@@ -1,8 +1,7 @@
-import { Flags } from '@oclif/core';
-import { ux } from '@oclif/core';
+import {ux} from '@oclif/core';
 import landoRunSetup from '../../../hooks/lando-run-setup.js';
-import { appRestart } from '../../art.js';
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {appRestart} from '../../art.js';
+import {LandoCommand, globalFlags} from '../base-command.js';
 
 export default class Restart extends LandoCommand<typeof Restart> {
   static override id = 'restart';
@@ -24,12 +23,12 @@ export default class Restart extends LandoCommand<typeof Restart> {
 
     await app.restart();
 
-    const artOutput = appRestart({ phase: 'post' });
+    const artOutput = appRestart({phase: 'post'});
     ux.log(artOutput);
 
     const info = app.info;
     if (info && Object.keys(info).length > 0) {
-      this.formatData(info, { format: 'table' });
+      this.formatData(info, {format: 'table'});
     }
   }
 }

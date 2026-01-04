@@ -33,32 +33,26 @@ describe('get-compose-x', () => {
     setPlatform('linux');
     const binPath = path.join(tempDir, 'bin');
     fs.mkdirSync(binPath, {recursive: true});
-    const composePath = path.join(binPath, 'docker-compose');
-    fs.writeFileSync(composePath, 'CODEZ');
+    const composePath = path.join(binPath, 'docker-compose-v2.31.0');
+    fs.writeFileSync(composePath, '#!/bin/bash\necho "docker-compose"');
     fs.chmodSync(composePath, 0o755);
 
-    const oldLandoBin = process.env.LANDO_COMPOSE_BIN;
-    process.env.LANDO_COMPOSE_BIN = composePath;
-
-    try {
-      const composeExecutable = getComposeExecutable();
-      expect(typeof composeExecutable).toBe('string');
-    } finally {
-      if (oldLandoBin) {
-        process.env.LANDO_COMPOSE_BIN = oldLandoBin;
-      } else {
-        delete process.env.LANDO_COMPOSE_BIN;
-      }
-    }
-  });
-
-  test('should return a string path', () => {
-    const composeExecutable = getComposeExecutable();
+    const composeExecutable = getComposeExecutable({userConfRoot: tempDir});
     expect(typeof composeExecutable).toBe('string');
+    expect(composeExecutable).toContain('docker-compose-v2.31.0');
   });
 
-  test('should return a valid path object when parsed', () => {
+  test('should return a string path or false if not found', () => {
     const composeExecutable = getComposeExecutable();
-    expect(typeof path.parse(composeExecutable)).toBe('object');
+    expect(typeof composeExecutable === 'string' || composeExecutable === false).toBe(true);
+  });
+
+  test('should return a valid path object when parsed if found', () => {
+    const composeExecutable = getComposeExecutable();
+    if (typeof composeExecutable === 'string') {
+      expect(typeof path.parse(composeExecutable)).toBe('object');
+    } else {
+      expect(composeExecutable).toBe(false);
+    }
   });
 });

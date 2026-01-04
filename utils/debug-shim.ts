@@ -1,4 +1,5 @@
 import Log from '../lib/logger.js';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import createDebug from './debug.js';
 
 const debugShim = (log: Log, {namespace}: {namespace?: string} = {}) => {
@@ -52,10 +53,14 @@ const debugShim = (log: Log, {namespace}: {namespace?: string} = {}) => {
     {
       enabled: true,
       namespace: namespace ?? 'lando',
-      contract: function() { return debug; },
-      replace: function() { return debug; },
+      contract: function() {
+ return debug;
+},
+      replace: function() {
+ return debug;
+},
       extend: (name: string) => debugShim(log, {namespace: name}),
-    }
+    },
   );
 
   return debug;

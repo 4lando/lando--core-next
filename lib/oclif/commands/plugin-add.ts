@@ -1,5 +1,5 @@
-import { Args, Flags } from '@oclif/core';
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {Args, Flags} from '@oclif/core';
+import {LandoCommand, globalFlags} from '../base-command.js';
 import PluginClass from '../../../components/plugin.js';
 import getPluginAddTask from '../../../utils/get-plugin-add-task.js';
 import runTasks from '../../../utils/run-tasks.js';
@@ -37,7 +37,7 @@ export default class PluginAdd extends LandoCommand<typeof PluginAdd> {
   };
 
   async run(): Promise<void> {
-    const { args, flags } = await this.parse(PluginAdd);
+    const {args, flags} = await this.parse(PluginAdd);
     const lando = await this.bootstrap('tasks');
 
     const plugin = new Plugin(args.plugin, {
@@ -48,6 +48,6 @@ export default class PluginAdd extends LandoCommand<typeof PluginAdd> {
     });
 
     const task = await (getPluginAddTask as any)(plugin, lando);
-    await (runTasks as any)([task], { renderer: 'dc2' });
+    await (runTasks as any)([task], {renderer: 'dc2'});
   }
 }

@@ -48,9 +48,9 @@ export class Log {
 
     if (this.logDir) {
       try {
-        fs.mkdirSync(this.logDir, { recursive: true });
-        this.errorStream = fs.createWriteStream(path.join(this.logDir, 'error.log'), { flags: 'a' });
-        this.mainStream = fs.createWriteStream(path.join(this.logDir, `${this.logName}.log`), { flags: 'a' });
+        fs.mkdirSync(this.logDir, {recursive: true});
+        this.errorStream = fs.createWriteStream(path.join(this.logDir, 'error.log'), {flags: 'a'});
+        this.mainStream = fs.createWriteStream(path.join(this.logDir, `${this.logName}.log`), {flags: 'a'});
       } catch {
         // Silently fail if we can't create log directory
       }
@@ -65,7 +65,7 @@ export class Log {
 
   private sanitize(obj: unknown): unknown {
     if (typeof obj !== 'object' || obj === null) return obj;
-    
+
     const sanitized: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
       if (this.sanitizedKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
@@ -87,7 +87,7 @@ export class Log {
   private formatMessage(level: LogLevel, message: string, meta?: Record<string, unknown>): string {
     const timestamp = new Date().toISOString();
     const sanitizedMeta = meta ? this.sanitize(meta) : undefined;
-    const metaStr = sanitizedMeta ? ` ${util.inspect(sanitizedMeta, { depth: 4, colors: false })}` : '';
+    const metaStr = sanitizedMeta ? ` ${util.inspect(sanitizedMeta, {depth: 4, colors: false})}` : '';
     return `${timestamp} [${level.toUpperCase()}] ${message}${metaStr}`;
   }
 
@@ -95,7 +95,7 @@ export class Log {
     const color = LEVEL_COLORS[level];
     const timestamp = new Date().toISOString().split('T')[1].replace('Z', '');
     const sanitizedMeta = meta ? this.sanitize(meta) : undefined;
-    const metaStr = sanitizedMeta ? ` ${util.inspect(sanitizedMeta, { depth: 4, colors: true })}` : '';
+    const metaStr = sanitizedMeta ? ` ${util.inspect(sanitizedMeta, {depth: 4, colors: true})}` : '';
     return `${color}${timestamp} ${level.toUpperCase().padEnd(7)}${RESET} ${message}${metaStr}`;
   }
 
@@ -106,11 +106,11 @@ export class Log {
 
     if (this.shouldLog(level, false)) {
       const formatted = this.formatMessage(level, message, meta) + '\n';
-      
+
       if (this.mainStream) {
         this.mainStream.write(formatted);
       }
-      
+
       if (level === 'error' && this.errorStream) {
         this.errorStream.write(formatted);
       }

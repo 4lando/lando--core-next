@@ -1,8 +1,8 @@
-import { Args, Flags } from '@oclif/core';
+import {Args, Flags} from '@oclif/core';
 import buildToolingRunner from '../../../utils/build-tooling-runner.js';
 import buildDockerExec from '../../../utils/build-docker-exec.js';
 import getUser from '../../../utils/get-user.js';
-import { LandoCommand, globalFlags } from '../base-command.js';
+import {LandoCommand, globalFlags} from '../base-command.js';
 
 export default class Exec extends LandoCommand<typeof Exec> {
   static override id = 'exec';
@@ -31,7 +31,7 @@ export default class Exec extends LandoCommand<typeof Exec> {
   ];
 
   async run(): Promise<void> {
-    const { args, flags, argv } = await this.parse(Exec);
+    const {args, flags, argv} = await this.parse(Exec);
     const lando = await this.bootstrap('engine');
 
     const appRoot = this.getAppRoot();
@@ -64,7 +64,7 @@ export default class Exec extends LandoCommand<typeof Exec> {
       user,
       {},
       undefined,
-      appMount
+      appMount,
     );
 
     await buildDockerExec(lando.config.dockerBin, runner);
