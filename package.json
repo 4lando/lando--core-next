@@ -17,6 +17,21 @@
   },
   "babel": {},
   "lando": {},
+  "oclif": {
+    "bin": "lando",
+    "dirname": "lando",
+    "commands": {
+      "strategy": "explicit",
+      "target": "./lib/oclif/commands.ts"
+    },
+    "topicSeparator": " ",
+    "hooks": {
+      "init": "./lib/oclif/hooks/init.ts",
+      "prerun": "./lib/oclif/hooks/prerun.ts",
+      "postrun": "./lib/oclif/hooks/postrun.ts"
+    },
+    "flexibleTaxonomy": true
+  },
   "main": "lib/lando.ts",
   "types": "types/index.d.ts",
   "bin": {
