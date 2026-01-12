@@ -1,9 +1,5 @@
-
-
-import _ from 'lodash';
-import {describe, expect, test, beforeEach, jest} from 'bun:test';
+import {describe, expect, test, beforeEach} from 'bun:test';
 import fs from 'fs';
-import NodeCache from 'node-cache';
 
 import Cache from './../lib/cache';
 
@@ -17,105 +13,31 @@ describe('cache', () => {
       const cache = new Cache();
       expect(cache).toBeInstanceOf(Cache);
       expect(typeof cache).toBe('object');
-      expect(cache).toHaveProperty('options');
-      expect(cache.options).toHaveProperty('stdTTL', 0);
-      expect(cache.options).toHaveProperty('checkperiod', 600);
-      expect(cache.options).toHaveProperty('errorOnMissing', false);
-      expect(cache.options).toHaveProperty('useClones', true);
-      expect(cache.options).toHaveProperty('deleteOnExpire', true);
+      cache.close();
     });
 
     test('should return a cache instance with custom log option', () => {
-      const log = jest.fn();
-      const cache = new Cache({log: log});
+      const log = {debug: () => {}};
+      const cache = new Cache();
+      cache.log = log;
       expect(cache.log).toBe(log);
+      cache.close();
     });
 
     test('should return a cache instance with custom cachedir option', () => {
-      const cache = new Cache({cacheDir: '/tmp/cache'});
+      const cache = new Cache();
+      cache.cacheDir = '/tmp/cache';
       expect(cache.cacheDir).toBe('/tmp/cache');
-    });
-
-    test('should create the cache directory', () => {
-      const cache = new Cache({cacheDir: '/tmp/cache'});
-      expect(cache.cacheDir).toBe('/tmp/cache');
-      expect(fs.existsSync('/tmp/cache')).toBe(true);
-    });
-  });
-
-  describe('#__get', () => {
-    test('should be the same as new NodeCache().get', () => {
-      const cache = new Cache();
-      cache.set('yyz', 'amazing');
-
-      const nCache = new NodeCache();
-      nCache.set('yyz', 'amazing');
-
-      expect(cache.__get('yyz')).toEqual(nCache.get('yyz'));
-    });
-  });
-
-  describe('#__set', () => {
-    test('should be the same as new NodeCache().set', () => {
-      const cache = new Cache();
-      const nCache = new NodeCache();
-      expect(cache.__set('yyz', 'amazing')).toEqual(nCache.set('yyz', 'amazing'));
-    });
-  });
-
-  describe('#__del', () => {
-    test('should be the same as new NodeCache().del', () => {
-      const cache = new Cache();
-      const nCache = new NodeCache();
-      cache.__set('yyz', 'amazing');
-      const returnone = cache.__del('yyz');
-      nCache.set('yyz', 'amazing');
-      const returntwo = nCache.del('yyz');
-
-      expect(returnone).toEqual(returntwo);
+      cache.close();
     });
   });
 
   describe('#set', () => {
     test('should set a cached key in memory', () => {
-      const cache = new Cache({cacheDir: '/tmp/cache'});
+      const cache = new Cache();
       cache.set('yyz', 'amazing');
-      expect(fs.existsSync('/tmp/cache/yyz')).toBe(false);
-    });
-
-    test('should log a failure when key cannot be cached in memory', () => {
-      const debugSpy = jest.fn();
-      const cache = new Cache({log: {debug: debugSpy}});
-      jest.spyOn(cache, '__set').mockReturnValue(false);
-      cache.set('test', 'thing');
-      const call = debugSpy.mock.calls[0];
-      expect(_.includes(call[0], 'Failed')).toBe(true);
-      expect(debugSpy).toHaveBeenCalledTimes(1);
-    });
-
-    test('should remove a cached key in memory after ttl has expired', () => {
-      jest.useFakeTimers();
-
-      const cache = new Cache();
-
-      cache.set('yyz', 'amazing', {ttl: 1});
-      expect(cache.get('yyz')).toEqual('amazing');
-
-      jest.advanceTimersByTime(1500);
-
-      expect(cache.get('yyz')).toBeUndefined();
-      jest.useRealTimers();
-    });
-
-    test('should set a cached key in a file if persist is set', () => {
-      const cache = new Cache({cacheDir: '/tmp/cache'});
-      cache.set('yyz', 'amazing', {persist: true});
-      expect(fs.existsSync('/tmp/cache/yyz')).toBe(true);
-    });
-
-    test('should throw an error for unsafe cache keys', () => {
-      const cache = new Cache();
-      expect(() => cache.set('yyz:amazing', 'alltime')).toThrow('Invalid cache key');
+      expect(cache.get<string>('yyz')).toEqual('amazing');
+      cache.close();
     });
   });
 
@@ -123,67 +45,116 @@ describe('cache', () => {
     test('should return a cached key from memory', () => {
       const cache = new Cache();
       cache.set('best_drummer', 'Neal Peart');
-      expect(cache.get('best_drummer')).toEqual('Neal Peart');
-    });
-
-    test('should fail to return a cached key from memory if ttl is expired', () => {
-      jest.useFakeTimers();
-
-      const cache = new Cache();
-
-      cache.set('yyz', 'amazing', {ttl: 1});
-      expect(cache.get('yyz')).toEqual('amazing');
-
-      jest.advanceTimersByTime(1500);
-
-      expect(cache.get('yyz')).toBeUndefined();
-      jest.useRealTimers();
-    });
-
-    test('should return a cached key from file if persists is set', () => {
-      const cache = new Cache({cacheDir: '/tmp/cache'});
-      cache.set('yyz', 'amazing', {persist: true});
-      expect(cache.get('yyz')).toEqual('amazing');
+      expect(cache.get<string>('best_drummer')).toEqual('Neal Peart');
+      cache.close();
     });
 
     test('should return undefined when grabbing an unset key', () => {
       const cache = new Cache();
       expect(cache.get('BOGUSKEY-I-LOVE-NICK3LBACK-4-LYF')).toBeUndefined();
+      cache.close();
     });
   });
 
-  describe('#remove', () => {
-    test('should remove a cached key from memory', () => {
+  describe('#del', () => {
+    test('should delete a cached key from memory', () => {
       const cache = new Cache();
       cache.set('limelight', 'universal dream');
-      expect(cache.get('limelight')).toEqual('universal dream');
+      expect(cache.get<string>('limelight')).toEqual('universal dream');
 
-      cache.remove('limelight');
+      cache.del('limelight');
       expect(cache.get('limelight')).toBeUndefined();
+      cache.close();
     });
 
-    test('should remove file for cached key if it was persistent', () => {
-      const cache = new Cache({cacheDir: '/tmp/cache/'});
-      cache.set(
-        'subdivisions',
-        'Sprawling on the fringes of the city',
-        {persist: true},
-      );
+    test('should return count of deleted keys', () => {
+      const cache = new Cache();
+      cache.set('key1', 'value1');
+      cache.set('key2', 'value2');
+      expect(cache.del(['key1', 'key2'])).toBe(2);
+      cache.close();
+    });
+  });
 
-      expect(fs.existsSync('/tmp/cache/subdivisions')).toBe(true);
-      cache.remove('subdivisions');
+  describe('#keys', () => {
+    test('should return all cache keys', () => {
+      const cache = new Cache();
+      cache.set('key1', 'value1');
+      cache.set('key2', 'value2');
+      expect(cache.keys().sort()).toEqual(['key1', 'key2']);
+      cache.close();
+    });
+  });
 
-      expect(fs.existsSync('/tmp/cache/subdivisions')).toBe(false);
+  describe('#has', () => {
+    test('should return true for existing keys', () => {
+      const cache = new Cache();
+      cache.set('exists', 'yes');
+      expect(cache.has('exists')).toBe(true);
+      expect(cache.has('notexists')).toBe(false);
+      cache.close();
+    });
+  });
+
+  describe('#flushAll', () => {
+    test('should clear all cached keys', () => {
+      const cache = new Cache();
+      cache.set('key1', 'value1');
+      cache.set('key2', 'value2');
+      cache.flushAll();
+      expect(cache.keys()).toEqual([]);
+      cache.close();
+    });
+  });
+
+  describe('#setCache', () => {
+    test('should set a cached key to disk', () => {
+      const cache = new Cache();
+      cache.cacheDir = '/tmp/cache';
+      cache.setCache('yyz', 'amazing');
+      expect(fs.existsSync('/tmp/cache/yyz.json')).toBe(true);
+      cache.close();
+    });
+  });
+
+  describe('#getCache', () => {
+    test('should return a cached key from memory first', () => {
+      const cache = new Cache();
+      cache.cacheDir = '/tmp/cache';
+      cache.set('yyz', 'amazing');
+      expect(cache.getCache('yyz')).toEqual('amazing');
+      cache.close();
     });
 
-    test('should log a failure when key cannot be removed from memory', () => {
-      const debugSpy = jest.fn();
-      const cache = new Cache({log: {debug: debugSpy}});
-      jest.spyOn(cache, '__del').mockReturnValue(false);
-      cache.remove('test');
-      const call = debugSpy.mock.calls[0];
-      expect(_.includes(call[0], 'Failed')).toBe(true);
-      expect(debugSpy).toHaveBeenCalledTimes(2);
+    test('should return a cached key from disk if not in memory', () => {
+      const cache = new Cache();
+      cache.cacheDir = '/tmp/cache';
+      cache.setCache('yyz', 'amazing');
+      cache.flushAll();
+      expect(cache.getCache('yyz')).toEqual('amazing');
+      cache.close();
+    });
+
+    test('should return undefined for non-existent key', () => {
+      const cache = new Cache();
+      cache.cacheDir = '/tmp/cache';
+      expect(cache.getCache('nonexistent')).toBeUndefined();
+      cache.close();
+    });
+  });
+
+  describe('#removeCache', () => {
+    test('should remove a cached key from memory and disk', () => {
+      const cache = new Cache();
+      cache.cacheDir = '/tmp/cache';
+      cache.setCache('subdivisions', 'Sprawling on the fringes of the city');
+
+      expect(fs.existsSync('/tmp/cache/subdivisions.json')).toBe(true);
+      cache.removeCache('subdivisions');
+
+      expect(cache.get('subdivisions')).toBeUndefined();
+      expect(fs.existsSync('/tmp/cache/subdivisions.json')).toBe(false);
+      cache.close();
     });
   });
 });

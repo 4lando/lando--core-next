@@ -17,6 +17,22 @@
   },
   "babel": {},
   "lando": {},
+  "oclif": {
+    "bin": "lando",
+    "dirname": "lando",
+    "commands": {
+      "strategy": "explicit",
+      "target": "./lib/oclif/commands.ts"
+    },
+    "topicSeparator": " ",
+    "hooks": {
+      "init": "./lib/oclif/hooks/init.ts",
+      "prerun": "./lib/oclif/hooks/prerun.ts",
+      "postrun": "./lib/oclif/hooks/postrun.ts"
+    },
+    "flexibleTaxonomy": true,
+    "helpClass": "./lib/oclif/help.ts"
+  },
   "main": "lib/lando.ts",
   "types": "types/index.d.ts",
   "bin": {
@@ -94,8 +110,6 @@
     "valid-url": "^1.0.9",
     "win-ca": "^3.5.1",
     "wrap-ansi": "^9.0.2",
-    "yargonaut": "^1.1.4",
-    "yargs": "^15.4.1",
     "yargs-parser": "^11.1.1"
   },
   "devDependencies": {

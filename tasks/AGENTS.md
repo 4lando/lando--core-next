@@ -10,8 +10,8 @@ export default (lando, config?) => ({
   describe: 'Help text',
   usage: '$0 name [options]',
   level: 'engine' | 'app',  // Bootstrap depth required
-  options: { /* yargs options */ },
-  positionals: { /* yargs positionals */ },
+  options: { /* oclif flag definitions */ },
+  positionals: { /* oclif arg definitions */ },
   run: async (options) => { /* implementation */ }
 });
 ```
@@ -40,7 +40,7 @@ export default (lando, config?) => ({
 - **App access**: `const app = await lando.getApp(options.app)` then `await app.init()`
 - **Output**: Use `lando.cli.makeArt()` for formatted output
 - **Errors**: Throw or return error object with `{ code, message }`
-- **Options**: Define with yargs syntax, access via `options.optionName`
+- **Options**: Define with oclif syntax, access via `options.optionName`
 
 ## WHERE TO LOOK
 

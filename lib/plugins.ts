@@ -149,7 +149,7 @@ export default class Plugins {
     } catch (e: any) {
       const message = e?.message ?? String(e);
       const stack = e?.stack ?? 'no stack trace available';
-      this.log.error('problem loading plugin %o from %o: %s', plugin.name, file, message);
+      this.log.error('problem loading plugin %s from %s: %s', plugin.name, file, message);
       this.log.debug('plugin %o error stack: %s', plugin.name, stack);
     }
 

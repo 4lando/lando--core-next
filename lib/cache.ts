@@ -17,7 +17,8 @@ export default class Cache {
   private stdTTL: number;
   private checkperiod: number;
   private timer: ReturnType<typeof setInterval> | null = null;
-  
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   log: any;
   cacheDir: string;
 
@@ -26,7 +27,7 @@ export default class Cache {
     this.checkperiod = options.checkperiod ?? 600;
     this.log = console;
     this.cacheDir = '';
-    
+
     if (this.checkperiod > 0) {
       this.timer = setInterval(() => this.checkExpired(), this.checkperiod * 1000);
     }
@@ -47,7 +48,7 @@ export default class Cache {
   }
 
   set<T>(key: string, value: T, ttl?: number): boolean {
-    this.store.set(key, { value, expires: this.getExpiry(ttl) });
+    this.store.set(key, {value, expires: this.getExpiry(ttl)});
     return true;
   }
 
@@ -91,7 +92,7 @@ export default class Cache {
 
   setCache(key: string, data: unknown): boolean {
     const cacheFile = path.join(this.cacheDir, `${key}.json`);
-    
+
     try {
       this.set(key, data);
       this.log.debug?.('Setting cache key %s to memory.', key);
@@ -100,7 +101,7 @@ export default class Cache {
     }
 
     try {
-      fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+      fs.mkdirSync(path.dirname(cacheFile), {recursive: true});
       fs.writeFileSync(cacheFile, JSON.stringify(data, null, 2));
       this.log.debug?.('Setting cache key %s to disk at %s.', key, cacheFile);
       return true;
@@ -113,7 +114,7 @@ export default class Cache {
   getCache(key: string): unknown {
     const cacheFile = path.join(this.cacheDir, `${key}.json`);
     const memoryData = this.get(key);
-    
+
     if (memoryData !== undefined) {
       this.log.debug?.('Cache key %s retrieved from memory.', key);
       return memoryData;
@@ -130,16 +131,16 @@ export default class Cache {
     } catch {
       this.log.debug?.('Failed reading cache key %s from disk.', key);
     }
-    
+
     return undefined;
   }
 
   removeCache(key: string): boolean {
     const cacheFile = path.join(this.cacheDir, `${key}.json`);
-    
+
     this.del(key);
     this.log.debug?.('Removed cache key %s from memory.', key);
-    
+
     try {
       if (fs.existsSync(cacheFile)) {
         fs.unlinkSync(cacheFile);

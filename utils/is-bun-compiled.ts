@@ -6,7 +6,7 @@
  * This virtual filesystem doesn't exist on the actual disk, so we need to
  * detect this case and handle it specially (e.g., for plugin loading).
  *
- * @returns {boolean} True if running as a compiled Bun binary
+ * @return {boolean} True if running as a compiled Bun binary
  */
 export default function isBunCompiled(): boolean {
   // Check if process.argv[1] contains the Bun virtual filesystem marker

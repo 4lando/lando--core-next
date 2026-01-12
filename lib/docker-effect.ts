@@ -1,3 +1,5 @@
+/* eslint-disable require-jsdoc, valid-jsdoc */
+// eslint-disable-next-line spaced-comment
 /// <reference types="bun-types" />
 /**
  * Docker client using the-moby-effect (Effect-ts based, ESM native)
@@ -6,9 +8,7 @@
  * @module docker-effect
  */
 
-import * as DockerEngine from 'the-moby-effect/DockerEngine';
-import { promiseClient } from 'the-moby-effect/Promises';
-import type { ContainerInspectResponse, ContainerSummary } from 'the-moby-effect/MobySchemas';
+import type {ContainerInspectResponse, ContainerSummary} from 'the-moby-effect/MobySchemas';
 
 // Types for our Promise-based API
 export interface DockerConnectionOptions {
@@ -59,9 +59,6 @@ export interface NetworkCreateOptions {
   Labels?: Record<string, string>;
 }
 
-// Promise client type
-type PromiseClient = Awaited<ReturnType<typeof promiseClient>>;
-
 /**
  * Docker client class providing Promise-based API
  * Uses Bun CLI for all Docker operations (avoids CJS bundling issues)
@@ -99,6 +96,7 @@ export class DockerClient {
 
   /**
    * List containers
+   * @param {ContainerListOptions} options - Container list options
    */
   async listContainers(options: ContainerListOptions = {}): Promise<ContainerSummary[]> {
     const args: string[] = ['docker', 'ps', '--format', '{{json .}}'];
@@ -112,7 +110,7 @@ export class DockerClient {
         }
       }
     }
-    
+
     const result = await Bun.$`${args}`.text();
     const lines = result.trim().split('\n').filter(Boolean);
     return lines.map(line => JSON.parse(line)) as ContainerSummary[];
@@ -120,6 +118,7 @@ export class DockerClient {
 
   /**
    * Inspect a container
+   * @param {string} id - Container ID
    */
   async inspectContainer(id: string): Promise<ContainerInspectResponse> {
     // Use CLI since the promise API doesn't have direct inspect
@@ -129,6 +128,7 @@ export class DockerClient {
 
   /**
    * Check if a container is running
+   * @param {string} id - Container ID
    */
   async isContainerRunning(id: string): Promise<boolean> {
     try {
@@ -141,6 +141,8 @@ export class DockerClient {
 
   /**
    * Stop a container
+   * @param {string} id - Container ID
+   * @param {number} timeout - Optional timeout in seconds
    */
   async stopContainer(id: string, timeout?: number): Promise<void> {
     if (timeout) {
@@ -152,6 +154,7 @@ export class DockerClient {
 
   /**
    * Start a container
+   * @param {string} id - Container ID
    */
   async startContainer(id: string): Promise<void> {
     await Bun.$`docker start ${id}`.quiet();
@@ -159,6 +162,8 @@ export class DockerClient {
 
   /**
    * Remove a container
+   * @param {string} id - Container ID
+   * @param {object} options - Remove options
    */
   async removeContainer(id: string, options: { force?: boolean; volumes?: boolean } = {}): Promise<void> {
     const args: string[] = ['docker', 'rm'];
@@ -170,6 +175,7 @@ export class DockerClient {
 
   /**
    * Get container by ID (returns inspection data)
+   * @param {string} id - Container ID
    */
   async getContainer(id: string): Promise<ContainerInspectResponse | null> {
     try {
@@ -183,6 +189,7 @@ export class DockerClient {
 
   /**
    * List networks
+   * @param {Record<string, string[]>} filters - Optional filters
    */
   async listNetworks(filters?: Record<string, string[]>): Promise<NetworkInfo[]> {
     let cmd = 'docker network ls --format \'{{json .}}\'';
@@ -212,6 +219,7 @@ export class DockerClient {
 
   /**
    * Create a network
+   * @param {NetworkCreateOptions} options - Network creation options
    */
   async createNetwork(options: NetworkCreateOptions): Promise<{ Id: string }> {
     const args: string[] = ['docker', 'network', 'create'];
@@ -233,11 +241,12 @@ export class DockerClient {
     args.push(options.Name);
 
     const result = await Bun.$`${args}`.text();
-    return { Id: result.trim() };
+    return {Id: result.trim()};
   }
 
   /**
    * Inspect a network
+   * @param {string} id - Network ID
    */
   async inspectNetwork(id: string): Promise<NetworkInfo | null> {
     try {
@@ -312,4 +321,4 @@ export function closeDockerClient(): void {
 }
 
 // Re-export types
-export type { ContainerInspectResponse, ContainerSummary };
+export type {ContainerInspectResponse, ContainerSummary};

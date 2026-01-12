@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 /**
  * Dockerfile generator - inlined to avoid Bun bundling issues with dockerfile-generator package
  * Original: dockerfile-generator/lib/dockerGenerator.js + dockerProcessor.js
@@ -21,7 +22,7 @@ function processCmdAndRunAndEntryPointAndShell(cmdName: string, params: string |
 function processLabelAndEnv(cmdName: string, params: Record<string, string> | string[]): string {
   let lines = '';
   if (typeof params === 'object') {
-    Object.keys(params).forEach((key) => {
+    Object.keys(params).forEach(key => {
       lines += `${cmdName} ${key}=${(params as Record<string, string>)[key]}\n`;
     });
   }
@@ -139,11 +140,13 @@ function determineFunction(functionName: string): ProcessorFunction {
 
 /**
  * Generate Dockerfile from an Array.
+ * @param {Array} inputArray - Array of Dockerfile instructions
+ * @return {string} Generated Dockerfile content
  */
 export function generateDockerFileFromArray(inputArray: Record<string, any>[]): string {
   let resp = '';
-  inputArray.forEach((item) => {
-    Object.keys(item).forEach((key) => {
+  inputArray.forEach(item => {
+    Object.keys(item).forEach(key => {
       const callableFunction = determineFunction(key);
       resp += callableFunction(item[key]);
       resp += '\n';

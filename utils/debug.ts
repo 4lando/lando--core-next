@@ -1,4 +1,5 @@
-/// <reference types="bun-types" />
+/* eslint-disable require-jsdoc */
+// / <reference types="bun-types" />
 
 type DebugFunction = (...args: unknown[]) => void;
 
@@ -12,16 +13,16 @@ let debugPatterns: string[] = (process.env.DEBUG || '').split(',').map(p => p.tr
 
 function matchesPattern(namespace: string): boolean {
   if (debugPatterns.length === 0) return false;
-  
+
   for (const pattern of debugPatterns) {
     if (pattern === '*') return true;
     if (pattern === namespace) return true;
-    
+
     if (pattern.endsWith('*')) {
       const prefix = pattern.slice(0, -1);
       if (namespace.startsWith(prefix)) return true;
     }
-    
+
     if (pattern.startsWith('-')) {
       const excluded = pattern.slice(1);
       if (excluded.endsWith('*')) {
@@ -32,7 +33,7 @@ function matchesPattern(namespace: string): boolean {
       }
     }
   }
-  
+
   return false;
 }
 
@@ -69,15 +70,15 @@ function createDebug(namespace: string): Debug {
 
   const debug: Debug = function(...args: unknown[]) {
     if (!debug.enabled) return;
-    
+
     const now = Date.now();
     const diff = now - lastTime;
     lastTime = now;
-    
+
     const prefix = `${color}${namespace}${reset}`;
     const suffix = `${color}+${diff}ms${reset}`;
     const formatted = formatArgs(args);
-    
+
     console.error(prefix, ...formatted, suffix);
   } as Debug;
 
