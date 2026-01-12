@@ -1,11 +1,12 @@
+// eslint-disable-next-line spaced-comment
 /// <reference types="bun-types" />
 import _ from 'lodash';
 import fs from 'fs';
 import Promise from './promise.js';
 import toLandoContainer from '../utils/to-lando-container.js';
 import dockerComposify from '../utils/docker-composify.js';
-import { DockerClient, getDockerClient } from './docker-effect.js';
-import type { ContainerListOptions, NetworkCreateOptions, NetworkInfo } from './docker-effect.js';
+import {DockerClient, getDockerClient} from './docker-effect.js';
+import type {ContainerListOptions, NetworkCreateOptions, NetworkInfo} from './docker-effect.js';
 
 interface ContainerData {
   Id: string;
@@ -41,7 +42,7 @@ export default class Landerode {
   private async getClient(): Promise<DockerClient> {
     if (!this.client) {
       const socketPath = (this.opts.socketPath as string) || process.env.DOCKER_HOST || '/var/run/docker.sock';
-      this.client = await getDockerClient({ socketPath });
+      this.client = getDockerClient(socketPath);
     }
     return this.client;
   }
@@ -92,52 +93,52 @@ export default class Landerode {
 
     let result: LandoContainer[] = ([...containers] as unknown as ContainerData[])
       .filter(Boolean)
-      .filter((data) => data.Status !== 'Removal In Progress')
-      .map((container) => toLandoContainer(container, separator) as LandoContainer)
-      .filter((data) => data.lando === true)
-      .filter((data) => data.instance === this.id);
+      .filter(data => data.Status !== 'Removal In Progress')
+      .map(container => toLandoContainer(container, separator) as LandoContainer)
+      .filter(data => data.lando === true)
+      .filter(data => data.instance === this.id);
 
-    const keepPromises = result.map(async (container) => {
+    const keepPromises = result.map(async container => {
       if (!srcExists(container.src) && container.kind === 'app') {
-        await this.remove(container.id, { force: true });
+        await this.remove(container.id, {force: true});
         return false;
       }
       return true;
     });
 
     const keeps = await Promise.all(keepPromises);
-    result = result.filter((_, i) => keeps[i]);
+    result = result.filter((unused, i) => keeps[i]);
 
     if (options.project) {
-      result = result.filter((c) => c.app === options.project);
+      result = result.filter(c => c.app === options.project);
     }
     if (options.app) {
-      result = result.filter((c) => c.app === dockerComposify(options.app as string));
+      result = result.filter(c => c.app === dockerComposify(options.app as string));
     }
 
     if (!_.isEmpty(options.filter)) {
       const filterPairs = _.fromPairs(
-        _.map(options.filter as string[], (filter: string) => filter.split('='))
+        _.map(options.filter as string[], (filter: string) => filter.split('=')),
       );
       result = _.filter(result, filterPairs) as LandoContainer[];
     }
 
-    if (result.find((container) => container.status === 'Up Less than a second')) {
+    if (result.find(container => container.status === 'Up Less than a second')) {
       return this.list(options, separator);
     }
 
-    return result.map((container) => {
+    return result.map(container => {
       container.running = container && typeof container.status === 'string' && !container.status.includes('Exited');
       return container;
     });
   }
 
-  async remove(cid: string, opts: { v?: boolean; force?: boolean } = { v: true, force: false }): Promise<void> {
+  async remove(cid: string, opts: {v?: boolean; force?: boolean} = {v: true, force: false}): Promise<void> {
     const client = await this.getClient();
-    await client.removeContainer(cid, { force: opts.force, volumes: opts.v });
+    await client.removeContainer(cid, {force: opts.force, volumes: opts.v});
   }
 
-  async stop(cid: string, opts: { t?: number } = {}): Promise<void> {
+  async stop(cid: string, opts: {t?: number} = {}): Promise<void> {
     const client = await this.getClient();
     await client.stopContainer(cid, opts.t);
   }

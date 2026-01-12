@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 /**
  * Wrapper around native fs to replace fs-extra for Bun compile compatibility.
  * fs-extra uses CommonJS dynamic requires that don't bundle properly.
@@ -30,6 +31,9 @@ export default fs;
 /**
  * Synchronously copy a file or directory.
  * This is a replacement for fs-extra's copySync.
+ * @param {string} src - Source path
+ * @param {string} dest - Destination path
+ * @param {object} options - Copy options
  */
 export const copySync = (
   src: string,

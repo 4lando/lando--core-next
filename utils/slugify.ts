@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 import _ from 'lodash';
 
 // Character map for common replacements (subset of slugify package)
@@ -22,6 +23,9 @@ const charMap: Record<string, string> = {
 /**
  * Convert a string to a URL-friendly slug.
  * Inlined replacement for slugify package to avoid CommonJS bundling issues.
+ * @param {string} input - String to slugify
+ * @param {object} options - Slugify options
+ * @return {string} URL-friendly slug
  */
 function slugify(input: string, options: {lower?: boolean; strict?: boolean; replacement?: string} = {}): string {
   const {lower = false, strict = false, replacement = '-'} = options;

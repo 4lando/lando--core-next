@@ -19,7 +19,7 @@ Core classes providing Lando's runtime abstractions. Stateful, instantiated duri
 | `Plugins` | plugins.ts | Plugin discovery/loading |
 | `Cache` | cache.ts | File-based caching |
 | `Shell` | shell.ts | Command execution |
-| `Cli` | cli.ts | CLI framework (yargs-based) |
+
 
 ## PATTERNS
 

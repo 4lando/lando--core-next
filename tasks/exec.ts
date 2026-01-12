@@ -68,27 +68,19 @@ export default (lando, config = lando.appConfig) => ({
     options.command = options['--'];
 
     // and validate
-    try {
-      // no service
-      if (!options.service) {
-        throw new Error('You must specific a service! See usage above.');
-      }
+    // no service
+    if (!options.service) {
+      throw new Error('You must specific a service! See usage above.');
+    }
 
-      // not a valid service
-      if (!aservices.includes(options.service)) {
-        throw new Error(`Service must be one of ${choices}! See usage above.`);
-      }
+    // not a valid service
+    if (!aservices.includes(options.service)) {
+      throw new Error(`Service must be one of ${choices}! See usage above.`);
+    }
 
-      // empty or nonexistent command
-      if (!options.command || options.command.length === 0) {
-        throw new Error('You must specify a command! See usage above.');
-      }
-
-    // collect, usage throw
-    } catch (error) {
-      if (options?._yargs?.showHelp) options._yargs.showHelp();
-      console.log('');
-      throw error;
+    // empty or nonexistent command
+    if (!options.command || options.command.length === 0) {
+      throw new Error('You must specify a command! See usage above.');
     }
 
     // if command is a single thing then lets string argv that
