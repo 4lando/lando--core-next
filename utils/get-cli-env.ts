@@ -1,7 +1,6 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = (more = {}) => _.merge({}, {
+export default (more = {}) => _.merge({}, {
   PHP_MEMORY_LIMIT: '-1',
 }, more);

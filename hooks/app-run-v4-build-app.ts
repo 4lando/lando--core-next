@@ -1,8 +1,8 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import appBuildV4Error from '../messages/app-build-v4-error.js';
 
-module.exports = async app => {
+export default async app => {
   // get buildable services
   const buildV4Services = _(app.v4.parsedConfig)
     .filter(service => _.includes(_.get(app, 'opts.services', app.services), service.name))
@@ -55,7 +55,7 @@ module.exports = async app => {
     } catch (error) {
       // @TODO: improve this?
       app.log.debug('app build error %o %o', error.message, error);
-      app.addMessage(require('../messages/app-build-v4-error')(error), error, true);
+      app.addMessage(appBuildV4Error(error), error, true);
     }
   }));
 };

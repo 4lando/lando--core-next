@@ -1,14 +1,12 @@
-'use strict';
+import write from '../utils/write-file';
+import {color} from '../utils/listr2.js';
 
-module.exports = lando => {
+export default lando => {
   return {
     command: 'plugin-logout',
     usage: '$0 plugin-logout',
     level: 'tasks',
     run: async () => {
-      const write = require('../utils/write-file');
-      const {color} = require('listr2');
-
       // write an empty config file
       write(lando.config.pluginConfigFile, {});
       lando.log.debug('wrote empty config to %s', lando.config.pluginConfigFile);

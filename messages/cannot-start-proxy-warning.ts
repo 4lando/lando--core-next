@@ -1,6 +1,5 @@
-'use strict';
 
-module.exports = message => ({
+export default message => ({
   title: 'Lando was not able to start the proxy',
   type: 'warning',
   detail: [

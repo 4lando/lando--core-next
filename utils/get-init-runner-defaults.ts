@@ -1,9 +1,10 @@
-'use strict';
+import dumpComposeData from './dump-compose-data.js';
+import dockerComposify from './docker-composify.js';
 
-const _ = require('lodash');
-const path = require('path');
+import _ from 'lodash';
+import path from 'path';
 
-module.exports = (lando, options) => {
+export default (lando, options) => {
   // Handle all the compose stuff
   const LandoInit = lando.factory.get('_init');
   const initData = new LandoInit(
@@ -15,9 +16,9 @@ module.exports = (lando, options) => {
     _.get(options, 'initImage', 'devwithlando/util:4'),
   );
   const initDir = path.join(lando.config.userConfRoot, 'init', options.name);
-  const initFiles = require('./dump-compose-data')(initData, initDir);
+  const initFiles = dumpComposeData(initData, initDir);
   // Start to build out some propz and shiz
-  const project = `${lando.config.product}init` + require('./docker-composify')(options.name);
+  const project = `${lando.config.product}init` + dockerComposify(options.name);
   const separator = lando.config.orchestratorSeparator;
   // Return
   return {

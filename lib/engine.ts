@@ -1,16 +1,16 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import semver from 'semver';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const LandoDaemon = require('./daemon');
-const Landerode = require('./docker');
-const router = require('./router');
+import LandoDaemon from './daemon.js';
+import Landerode from './docker.js';
+import * as router from './router.js';
+import isCompatibleVersion from '../utils/is-compatible-version.js';
 
 /*
  * @TODO
  */
-module.exports = class Engine {
+export default class Engine {
   docker: any;
   daemon: any;
   compose: any;
@@ -189,8 +189,6 @@ module.exports = class Engine {
    * @TODO: Need to docblock this correctly so it shows up in the API docs
    */
   getCompatibility(supportedVersions = this.supportedVersions) {
-    const semver = require('semver');
-
     // normalize supported versions stuff
     supportedVersions = _(supportedVersions)
       .map((data, name) => _.merge({}, data, {name}))
@@ -219,9 +217,9 @@ module.exports = class Engine {
         return {
           name,
           link: reqs.link,
-          satisfied: require('../utils/is-compatible-version')(version, reqs),
-          untested: !require('../utils/is-compatible-version')(version, {...reqs, satisfies: reqs.tested}),
-          rupdate: require('../utils/is-compatible-version')(version, {...reqs, satisfies: reqs.recommendUpdate}),
+          satisfied: isCompatibleVersion(version, reqs),
+          untested: !isCompatibleVersion(version, {...reqs, satisfies: reqs.tested}),
+          rupdate: isCompatibleVersion(version, {...reqs, satisfies: reqs.recommendUpdate}),
           wants: reqs.satisfies,
           tested: reqs.tested,
           update: reqs.recommendUpdate,
@@ -505,5 +503,5 @@ module.exports = class Engine {
     // stop
     return this.engineCmd('stop', data);
   }
-};
+}
 

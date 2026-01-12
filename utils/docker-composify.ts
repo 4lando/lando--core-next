@@ -1,5 +1,4 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = data => _.toLower(data).replace(/_|-|\.+/g, '');
+export default data => _.toLower(data).replace(/_|-|\.+/g, '');

@@ -1,6 +1,5 @@
-'use strict';
 
-module.exports = config => ({
+export default config => ({
   id: config.id,
   compose: config.compose,
   project: config.project,

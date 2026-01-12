@@ -1,10 +1,9 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const remove = require('../utils/remove');
+import fs from 'fs';
+import path from 'path';
+import remove from '../utils/remove.js';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // reset v4 service state
   for (const service of app?.v4?.services ?? []) service.info = undefined;
 

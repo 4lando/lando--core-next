@@ -1,19 +1,22 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import write from '../utils/write-file.js';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const write = require('../utils/write-file');
+import {color} from '../utils/listr2.js';
+import {nanoid} from 'nanoid';
 
-const {color} = require('listr2');
-const {nanoid} = require('nanoid');
+import isDisabled from '../utils/is-disabled.js';
+import moveConfig from '../utils/move-config.js';
+import normalizeOverrides from '../utils/normalize-overrides.js';
+import stripPatch from '../utils/strip-patch.js';
+import stripWild from '../utils/strip-wild.js';
 
 /*
  * The lowest level lando service, this is where a lot of the deep magic lives
  */
-module.exports = {
+export default {
   name: '_lando',
   parent: '_compose',
   builder: parent => class LandoLando extends parent {
@@ -66,7 +69,7 @@ module.exports = {
       // @TODO: get this someplace else for unit tezting
       if (!supportedIgnore && !_.includes(supported, version)) {
         if (!patchesSupported
-          || !_.includes(require('../utils/strip-wild')(supported), require('../utils/strip-patch')(version))) {
+          || !_.includes(stripWild(supported), stripPatch(version))) {
           throw Error(`${type} version ${version} is not supported`);
         }
       }
@@ -87,11 +90,11 @@ module.exports = {
       // Move our config into the userconfroot if we have some
       // NOTE: we need to do this because on macOS and Windows not all host files
       // are shared into the docker vm
-      if (fs.existsSync(confSrc)) require('../utils/move-config')(confSrc, confDest);
+      if (fs.existsSync(confSrc)) moveConfig(confSrc, confDest);
 
       // ditto for service helpers
-      if (!require('../utils/is-disabled')(scriptsDir) && typeof scriptsDir === 'string' && fs.existsSync(scriptsDir)) {
-        require('../utils/move-config')(scriptsDir, serviceScriptsDir);
+      if (!isDisabled(scriptsDir) && typeof scriptsDir === 'string' && fs.existsSync(scriptsDir)) {
+        moveConfig(scriptsDir, serviceScriptsDir);
       }
 
       // Handle Environment
@@ -200,7 +203,7 @@ module.exports = {
       }
 
       // Add our overrides at the end
-      sources.push({services: _.set({}, name, require('../utils/normalize-overrides')(overrides, root))});
+      sources.push({services: _.set({}, name, normalizeOverrides(overrides, root))});
 
       // Add some info basics
       info.config = config;

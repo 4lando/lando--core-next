@@ -1,6 +1,6 @@
-'use strict';
+import Metrics from '../lib/metrics.js';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 /*
  * Gets the current env var and returns the key needed for metrics
@@ -15,8 +15,7 @@ const getMetricsContext = () => {
   }
 };
 
-module.exports = (log, config) => {
-  const Metrics = require('./../lib/metrics');
+export default (log, config) => {
   const command = _.get(config, 'command._', 'unknown');
 
   // group by endpoints and resolve multiples

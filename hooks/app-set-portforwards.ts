@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   app.log.verbose('discovering dynamic portforward info...');
   const forwarders = _.filter(app.info, service => _.get(service, 'external_connection.port', false));
   return lando.engine.list({project: app.project})

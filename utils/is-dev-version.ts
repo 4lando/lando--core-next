@@ -1,8 +1,7 @@
-'use strict';
 
-const semver = require('semver');
+import semver from 'semver';
 
-module.exports = version => {
+export default version => {
   // throw error if not a valid version
   if (semver.valid(semver.clean(version)) === null) {
     throw new Error(`${version} must be a semantic version for this to work!`);

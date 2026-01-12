@@ -1,6 +1,6 @@
-'use strict';
+import spawnSyncStringer from './spawn-sync-stringer.js';
 
-module.exports = path => {
-  const {stdout} = require('./spawn-sync-stringer')('wslpath', ['-w', path], {encoding: 'utf-8'});
+export default path => {
+  const {stdout} = spawnSyncStringer('wslpath', ['-w', path], {encoding: 'utf-8'});
   return stdout.trim();
 };

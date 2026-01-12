@@ -1,7 +1,6 @@
-'use strict';
 
 // checks to see if a setting is disabled
-module.exports = plugins => {
+export default plugins => {
   const toob = plugins.length > 1 ? 'are' : 'is a';
   const pp = plugins.length > 1 ? 'plugins' : 'plugin';
   return {

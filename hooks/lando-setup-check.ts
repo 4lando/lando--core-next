@@ -1,6 +1,6 @@
-'use strict';
+import landoRunSetup from './lando-run-setup.js';
 
-module.exports = async lando => {
+export default async lando => {
   // fetch the command we are running
   const command = lando?.config?.command?._?.[0] ?? 'unknown';
 
@@ -13,7 +13,7 @@ module.exports = async lando => {
     // @NOTE: this is mostly a catch-all fail-safe fall-back in case something
     // gets through the setup cracks
     if (lando.engine.dockerInstalled === false) {
-      await require('./lando-run-setup')(lando);
+      await landoRunSetup(lando);
     }
   }
 };

@@ -1,13 +1,13 @@
-
 // Modules
-const _ = require('lodash');
-const Log = require('./../lib/logger');
-const Promise = require('./../lib/promise');
+import _ from 'lodash';
+import Log from '../lib/logger.js';
+import Promise from '../lib/promise.js';
+import getAxios from './get-axios.js';
 
-const axios = require('../utils/get-axios')({maxRedirect: 0}, {}, {rejectUnauthorized: false});
+const axios = getAxios({maxRedirect: 0}, {}, {rejectUnauthorized: false});
 
 // We make this module into a function so we can pass in a logger
-module.exports = (log = new Log()) => {
+export default (log = new Log()) => {
   // Helper to return a url status and log things
   const setStatus = (url, status = true, color = 'green', message = '%s is ready') => {
     log.debug(message, url);

@@ -1,8 +1,7 @@
-'use strict';
 
-const {Octokit} = require('@octokit/rest');
+import {Octokit} from '@octokit/rest';
 
-const {HttpsAgent} = require('@npmcli/agent');
+import {HttpsAgent} from '@npmcli/agent';
 
 const defaults = {
   userAgent: 'Lando/unknown',
@@ -11,4 +10,4 @@ const defaults = {
   },
 };
 
-module.exports = (options = {}) => new Octokit({...defaults, ...options});
+export default (options = {}) => new Octokit({...defaults, ...options});

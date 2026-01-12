@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = composeData => _(composeData)
+export default composeData => _(composeData)
   .flatMap(data => data.data)
   .flatMap(data => _.keys(data.services))
   .uniq()

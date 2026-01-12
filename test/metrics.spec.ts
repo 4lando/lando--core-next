@@ -1,12 +1,9 @@
-'use strict';
-
-const {describe, expect, test, jest, afterEach} = require('bun:test');
-const _ = require('lodash');
-const axios = require('axios');
-const EventEmitter = require('events').EventEmitter;
-const Promise = require('./../lib/promise');
-
-const Metrics = require('./../lib/metrics');
+import {describe, expect, test, jest, afterEach} from 'bun:test';
+import _ from 'lodash';
+import axios from 'axios';
+import {EventEmitter} from 'events';
+import Promise from './../lib/promise.js';
+import Metrics from './../lib/metrics.js';
 
 describe('metrics', () => {
   afterEach(() => {
@@ -49,7 +46,7 @@ describe('metrics', () => {
       const reportable = _.size(_.filter(endpoints, endpoint => endpoint.report));
       const metrics = new Metrics({id, endpoints, data: {prisoner: 'valjean'}});
       jest.spyOn(axios, 'create').mockImplementation(({baseURL = 'localhost'} = {}) => ({
-        post: (path, data) => {
+        post: (path: string, data: Record<string, unknown>) => {
           expect(baseURL).toBe(endpoints[counter].url);
           expect(path).toBe('/metrics/v2/' + id);
           expect(data.prisoner).toBe('valjean');
@@ -82,7 +79,7 @@ describe('metrics', () => {
       const endpoints = [{url: 'https://place.for.the.things/metrics', report: true}];
       const metrics = new Metrics({endpoints, data: {inspector: 'javier'}});
       jest.spyOn(axios, 'create').mockImplementation(() => ({
-        post: (path, data) => {
+        post: (path: string, data: Record<string, unknown>) => {
           if (data.action === 'escape') expect(data).toHaveProperty('freedman', 'valjean');
           if (data.action === 'apprehended') expect(data).not.toHaveProperty('freedman');
           return Promise.resolve();

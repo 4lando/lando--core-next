@@ -1,9 +1,11 @@
-'use strict';
 
-const {VerboseRenderer} = require('listr2');
+import {VerboseRenderer} from '../utils/listr2.js';
+import createDebug from '../utils/debug.js';
+
+const rendererDebug = createDebug('lando:debug-renderer');
 
 class LandoDebugRenderer extends VerboseRenderer {
-  static debug = require('debug')('lando:debug-renderer');
+  static debug = rendererDebug;
 
   constructor(tasks, options, $renderHook) {
     super(tasks, options, $renderHook);
@@ -24,5 +26,5 @@ class LandoDebugRenderer extends VerboseRenderer {
   }
 }
 
-module.exports = LandoDebugRenderer;
+export default LandoDebugRenderer;
 

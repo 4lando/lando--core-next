@@ -1,6 +1,6 @@
-'use strict';
+import getUserShell from './get-user-shell.js';
 
-module.exports = (paths = [], shell = require('./get-user-shell')()) => {
+export default (paths = [], shell = getUserShell()) => {
   // return NADA if no paths
   if (paths.length === 0) return '';
 

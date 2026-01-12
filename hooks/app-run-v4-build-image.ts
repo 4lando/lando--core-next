@@ -1,8 +1,8 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import imageBuildV4Error from '../messages/image-build-v4-error.js';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // get buildable services
   const buildV4Services = _(app.v4.parsedConfig)
     .filter(service => _.includes(_.get(app, 'opts.services', app.services), service.name))
@@ -27,7 +27,7 @@ module.exports = async (app, lando) => {
           await service.buildImage();
         } catch (error) {
           ctx.errors.push(error);
-          app.addMessage(require('../messages/image-build-v4-error')(error), error, true);
+          app.addMessage(imageBuildV4Error(error), error, true);
           throw error;
         }
       },

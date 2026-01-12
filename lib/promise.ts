@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Promise utilities that extend native Promise with Bluebird-compatible methods.
  *
@@ -169,4 +167,4 @@ const LandoPromise = Promise as LandoPromiseConstructor;
 (LandoPromise as any).mapSeries = mapSeries;
 (LandoPromise as any).retry = retry;
 
-module.exports = LandoPromise;
+export default LandoPromise;

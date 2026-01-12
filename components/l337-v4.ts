@@ -1,38 +1,44 @@
-'use strict';
+import fs from 'fs';
+import groupBy from 'lodash/groupBy';
+import isObject from 'lodash/isPlainObject';
+import isStringy from '../utils/is-stringy.js';
+import os from 'os';
+import merge from 'lodash/merge';
+import path from 'path';
+import read from '../utils/read-file.js';
+import remove from '../utils/remove.js';
+import write from '../utils/write-file.js';
+import uniq from 'lodash/uniq';
+import debug from '../utils/debug.js';
 
-const fs = require('fs');
-const groupBy = require('lodash/groupBy');
-const isObject = require('lodash/isPlainObject');
-const isStringy = require('../utils/is-stringy');
-const os = require('os');
-const merge = require('lodash/merge');
-const path = require('path');
-const read = require('../utils/read-file');
-const remove = require('../utils/remove');
-const write = require('../utils/write-file');
-const uniq = require('lodash/uniq');
+import {generateDockerFileFromArray} from '../utils/generate-dockerfile.js';
+import {nanoid} from 'nanoid';
+import {EventEmitter} from 'events';
 
-const {generateDockerFileFromArray} = require('dockerfile-generator/lib/dockerGenerator');
-const {nanoid} = require('nanoid');
-const {EventEmitter} = require('events');
+import getMountMatches from '../utils/get-mount-matches.js';
+import hasInstructions from '../utils/has-instructions.js';
+import toPosixPath from '../utils/to-posix-path.js';
+import getDockerX from '../utils/get-docker-x.js';
+import getComposeX from '../utils/get-compose-x.js';
+import DockerEngine from './docker-engine.js';
+import parseV4Ports from '../utils/parse-v4-ports.js';
+import dumpComposeData from '../utils/dump-compose-data.js';
+import isDisabled from '../utils/is-disabled.js';
+import getV4ImageBuildErrorCommand from '../utils/get-v4-image-build-error-command.js';
+import getPassphraselessKeys from '../utils/get-passphraseless-keys.js';
 
 // set more appropirate lando limit
 EventEmitter.setMaxListeners(64);
-
-// @TODO: should these be methods as well? static or otherwise?
-const getMountMatches = require('../utils/get-mount-matches');
-const hasInstructions = require('../utils/has-instructions');
-const toPosixPath = require('../utils/to-posix-path');
 
 class L337ServiceV4 extends EventEmitter {
   #app;
   #data;
   #lando;
 
-  static debug = require('debug')('@lando/l337-service-v4');
+  static debug = debug('@lando/l337-service-v4');
   static bengineConfig = {};
-  static builder = require('../utils/get-docker-x')();
-  static orchestrator = require('../utils/get-compose-x')();
+  static builder = getDockerX();
+  static orchestrator = getComposeX();
 
   static getBengine(config = L337ServiceV4.bengineConfig,
     {
@@ -40,7 +46,6 @@ class L337ServiceV4 extends EventEmitter {
       debug = L337ServiceV4.debug,
       orchestrator = L337ServiceV4.orchestrator,
     } = {}) {
-    const DockerEngine = require('./docker-engine');
     return new DockerEngine(config, {builder, debug, orchestrator});
   }
 
@@ -159,7 +164,7 @@ class L337ServiceV4 extends EventEmitter {
     this.info = merge({}, {state: states}, {primary, service: id, type}, info);
 
     // do some special undocumented things to "ports"
-    const {ports, http, https} = require('../utils/parse-v4-ports')(config.ports);
+    const {ports, http, https} = parseV4Ports(config.ports);
 
     // add in the l337 spec config
     this.addServiceData({
@@ -250,7 +255,7 @@ class L337ServiceV4 extends EventEmitter {
     });
 
     // update app with new stuff
-    this.#app.compose = require('../utils/dump-compose-data')(this.#app.composeData, this.#app._dir);
+    this.#app.compose = dumpComposeData(this.#app.composeData, this.#app._dir);
 
     // update and log
     this.#app.v4.updateComposeCache();
@@ -390,7 +395,7 @@ class L337ServiceV4 extends EventEmitter {
     if (data.tag) this.tag = data.tag;
 
     // finally make sure we honor buildkit disabling
-    if (require('../utils/is-disabled')((data.buildkit || data.buildx) ?? this.buildkit)) this.buildkit = false;
+    if (isDisabled((data.buildkit || data.buildx) ?? this.buildkit)) this.buildkit = false;
   }
 
   // lando runs a small superset of docker-compose that augments the image key so it can contain imagefile data
@@ -554,7 +559,7 @@ class L337ServiceV4 extends EventEmitter {
 
       // inject helpful failing stuff to compose
       this.addComposeData({services: {[context.id]: {
-        command: require('../utils/get-v4-image-build-error-command')(error),
+        command: getV4ImageBuildErrorCommand(error),
         image: 'busybox',
         user: 'root',
         volumes: [`${error.logfile}:/tmp/error.log`],
@@ -648,7 +653,7 @@ class L337ServiceV4 extends EventEmitter {
       imagefile: this.imagefile,
       sources: this.#data.sources.flat(Number.POSITIVE_INFINITY).filter(Boolean).filter(source => !source.url),
       sshSocket: this.sshSocket,
-      sshKeys: require('../utils/get-passphraseless-keys')(this.sshKeys),
+      sshKeys: getPassphraselessKeys(this.sshKeys),
       tag: this.tag,
     };
   }
@@ -815,4 +820,4 @@ class L337ServiceV4 extends EventEmitter {
   }
 }
 
-module.exports = L337ServiceV4;
+export default L337ServiceV4;

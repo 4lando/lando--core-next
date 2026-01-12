@@ -1,13 +1,18 @@
-'use strict';
 
-const axios = require('../utils/get-axios')();
-const fs = require('fs');
-const getDockerDesktopBin = require('../utils/get-docker-desktop-x');
-const os = require('os');
-const path = require('path');
-const semver = require('semver');
+import createAxios from '../utils/get-axios.js';
+import debugShim from '../utils/debug-shim.js';
+import downloadX from '../utils/download-x.js';
+import fs from 'fs';
+import getDockerDesktopBin from '../utils/get-docker-desktop-x.js';
+import isAdminUser from '../utils/is-admin-user.js';
+import os from 'os';
+import path from 'path';
+import runElevated from '../utils/run-elevated.js';
+import semver from 'semver';
 
-const {color} = require('listr2');
+import {color} from '../utils/listr2.js';
+
+const axios = createAxios();
 
 const buildIds = {
   '4.37.2': '179585',
@@ -66,7 +71,7 @@ const getEngineDownloadUrl = (id = '175267') => {
  * wrapper for docker-desktop install
  */
 const downloadDockerDesktop = (url, {debug, task}) => new Promise((resolve, reject) => {
-  const download = require('../utils/download-x')(url, {debug});
+  const download = downloadX(url, {debug});
   // success
   download.on('done', result => {
     task.title = `Downloaded build engine`;
@@ -82,8 +87,8 @@ const downloadDockerDesktop = (url, {debug, task}) => new Promise((resolve, reje
   });
 });
 
-module.exports = async (lando, options) => {
-  const debug = require('../utils/debug-shim')(lando.log);
+export default async (lando, options) => {
+  const debug = debugShim(lando.log);
   // if build engine is set to false allow it to be skipped
   // @NOTE: this is mostly for internal stuff
   if (options.buildEngine === false) return;
@@ -123,7 +128,7 @@ module.exports = async (lando, options) => {
       // throw error if we cannot ping the download link
       await axios.head(url);
       // throw if user is not an admin
-      if (!await require('../utils/is-admin-user')()) {
+      if (!await isAdminUser()) {
         throw new Error([
           `User "${os.userInfo().username}" does not have permission to install the build engine!`,
           'Contact your system admin for permission and then rerun setup.',
@@ -144,7 +149,7 @@ module.exports = async (lando, options) => {
           message: `Enter computer password for ${lando.config.username} to install build engine`,
           validate: async input => {
             const options = {debug, ignoreReturnCode: true, password: input};
-            const response = await require('../utils/run-elevated')(['echo', 'hello there'], options);
+            const response = await runElevated(['echo', 'hello there'], options);
             if (response.code !== 0) return response.stderr;
             return true;
           },
@@ -162,7 +167,7 @@ module.exports = async (lando, options) => {
       if (options.debug || options.verbose > 0 || lando.debuggy) command.push('--debug');
 
       // run
-      const result = await require('../utils/run-elevated')(command, {debug, password: ctx.password});
+      const result = await runElevated(command, {debug, password: ctx.password});
       result.download = ctx.download;
 
       // finish up

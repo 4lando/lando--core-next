@@ -1,9 +1,8 @@
-'use strict';
 
-const {color} = require('listr2');
-const write = require('../utils/write-file');
+import {color} from './listr2.js';
+import write from './write-file.js';
 
-module.exports = ({
+export default ({
   logfile = '/tmp/error.log',
   short = '',
   stderr = '',

@@ -1,9 +1,53 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import glob from '../utils/glob.js';
+import path from 'path';
+import {fileURLToPath} from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const _ = require('lodash');
-const fs = require('fs');
-const glob = require('glob');
-const path = require('path');
+// Static imports for core dependencies
+import Plugins from './plugins.js';
+import Shell from './shell.js';
+import AsyncEvents from './events.js';
+import Log from './logger.js';
+import ErrorHandler from './error.js';
+import UpdateManager from './updates.js';
+import Factory from './factory.js';
+import Yaml from './yaml.js';
+import LandoPromise from './promise.js';
+import App from './app.js';
+import * as landoUtils from './utils.js';
+import * as landoConfig from './config.js';
+import user from './user.js';
+
+// Static imports for utils
+import getPluginConfig from '../utils/get-plugin-config.js';
+import buildConfig from '../utils/build-config.js';
+import setupCache from '../utils/setup-cache.js';
+import setupMetrics from '../utils/setup-metrics.js';
+import debugShim from '../utils/debug-shim.js';
+import legacyScan from '../utils/legacy-scan.js';
+import setupEngine from '../utils/setup-engine.js';
+import getLandoFiles from '../utils/get-lando-files.js';
+import lmerge from '../utils/legacy-merge.js';
+import readFile from '../utils/read-file.js';
+import writeFile from '../utils/write-file.js';
+import runTasks from '../utils/run-tasks.js';
+import parseSetupTask from '../utils/parse-setup-task.js';
+import parseToPluginStrings from '../utils/parse-to-plugin-strings.js';
+import getPluginAddTask from '../utils/get-plugin-add-task.js';
+import parsePackageName from '../utils/parse-package-name.js';
+import getPluginType from '../utils/get-plugin-type.js';
+import isBunCompiled from '../utils/is-bun-compiled.js';
+
+// Static import of core plugin for compiled binary support
+import corePlugin from '../index.js';
+
+// Dynamic imports that must be required at runtime
+import generateTasksCache from '../hooks/lando-generate-tasks-cache.js';
+import {rimrafSync} from 'rimraf';
+import {createCert} from 'mkcert';
+import Plugin from '../components/plugin.js';
 
 // Bootstrap levels
 const BOOTSTRAP_LEVELS = {
@@ -30,7 +74,6 @@ const resolveSetupTasks = (tasks = []) => {
  * Helper to bootstrap plugins
  */
 const bootstrapConfig = async lando => {
-  const Plugins = require('./plugins');
   lando.plugins = new Plugins(lando.log);
   lando.versions = _.merge({}, DEFAULT_VERSIONS, lando.cache.get('versions'));
 
@@ -64,8 +107,19 @@ const bootstrapConfig = async lando => {
 
   // loop through plugins and load them
   for await (const p of plugins) {
-    // load ig
-    const plugin = await lando.plugins.load(p, p.path, lando);
+    let plugin;
+
+    // In compiled Bun binaries, dynamically loading @lando/core from /$bunfs/ paths fails
+    // because the virtual filesystem isn't accessible via require(). Use static import instead.
+    if (p.name === '@lando/core' && isBunCompiled()) {
+      lando.log.debug('loading @lando/core from static import (compiled binary mode)');
+      p.data = await corePlugin(lando);
+      lando.plugins.registry.push(p);
+      plugin = p;
+    } else {
+      plugin = await lando.plugins.load(p, p.path, lando);
+    }
+
     // Merge in config if we can
     if (_.has(plugin, 'data.config')) lando.config = _.merge(plugin.data.config, lando.config);
 
@@ -93,7 +147,7 @@ const bootstrapConfig = async lando => {
  */
 const bootstrapTasks = async lando => {
   // if we already have cached tasks tehn load that
-  if (!lando.cache.get('_.tasks.cache')) await require('../hooks/lando-generate-tasks-cache')(lando);
+  if (!lando.cache.get('_.tasks.cache')) await generateTasksCache(lando);
   // push it
   lando.tasks.push(...JSON.parse(lando.cache.get('_.tasks.cache')));
 };
@@ -102,10 +156,9 @@ const bootstrapTasks = async lando => {
  * Helper to bootstrap engine
  */
 const bootstrapEngine = lando => {
-  const Shell = require('./shell');
   lando.shell = new Shell(lando.log);
-  lando.scanUrls = require('../utils/legacy-scan')(lando.log);
-  lando.engine = require('../utils/setup-engine')(
+  lando.scanUrls = legacyScan(lando.log);
+  lando.engine = setupEngine(
     lando.config,
     lando.cache,
     lando.events,
@@ -113,12 +166,11 @@ const bootstrapEngine = lando => {
     lando.shell,
     lando.config.instance,
   );
-  lando.utils = _.merge({}, require('./utils'), require('./config'));
+  lando.utils = _.merge({}, landoUtils, landoConfig);
 
   // if we have not wiped the scripts dir to accomodate https://github.com/docker/for-mac/issues/6614#issuecomment-1382224436
   // then lets do that here
   if (!lando.cache.get('VIRTUOFSNUKE1')) {
-    const {rimrafSync} = require('rimraf');
     rimrafSync(path.join(lando.config.userConfRoot, 'scripts'));
     lando.cache.set('VIRTUOFSNUKE1', 'yes', {persist: true});
   }
@@ -128,8 +180,6 @@ const bootstrapEngine = lando => {
  * Helper to bootstrap app stuffs
  */
 const bootstrapApp = lando => {
-  const Factory = require('./factory');
-  const Yaml = require('./yaml');
   lando.factory = new Factory();
   lando.yaml = new Yaml(lando.log);
 
@@ -194,7 +244,7 @@ const bootstrapRouter = async (level, lando) => {
  *   mode: 'cli'
  * });
  */
-module.exports = class Lando {
+export default class Lando {
   BOOTSTRAP_LEVELS: Record<string, number>;
   config: any;
   Promise: any;
@@ -219,22 +269,16 @@ module.exports = class Lando {
   _bootstrapLevel: number;
 
   constructor(options = {}) {
-    const getPluginConfig = require('../utils/get-plugin-config');
-
     this.BOOTSTRAP_LEVELS = BOOTSTRAP_LEVELS;
-    this.config = require('../utils/build-config')(options);
-    this.Promise = require('./promise');
+    this.config = buildConfig(options);
+    this.Promise = LandoPromise;
     this.tasks = [];
-    const AsyncEvents = require('./events');
-    const Log = require('./logger');
-    const ErrorHandler = require('./error');
-    const UpdateManager = require('./updates');
-    this.cache = require('../utils/setup-cache')(this.log, this.config);
+    this.cache = setupCache(this.log, this.config);
     this.log = new Log(this.config);
-    this.metrics = require('../utils/setup-metrics')(this.log, this.config);
+    this.metrics = setupMetrics(this.log, this.config);
     this.error = new ErrorHandler(this.log, this.metrics);
     this.events = new AsyncEvents(this.log);
-    this.user = require('./user');
+    this.user = user;
 
     // updater is more complex now
     this.updates = new UpdateManager({
@@ -242,7 +286,7 @@ module.exports = class Lando {
       channel: this.config.channel,
       cli: _.get(this, 'config.cli'),
       config: getPluginConfig(this.config.pluginConfigFile, this.config.pluginConfig),
-      debug: require('../utils/debug-shim')(this.log),
+      debug: debugShim(this.log),
     });
 
     // helper just to determine whether we are "debuggy" or not
@@ -427,10 +471,6 @@ module.exports = class Lando {
     organization = 'Lando Alliance',
     validity = 365,
   } = {}) {
-    const read = require('../utils/read-file');
-    const write = require('../utils/write-file');
-    const {createCert} = require('mkcert');
-
     // compute
     const certPath = path.join(this.config.userConfRoot, 'certs', `${name}.crt`);
     const keyPath = path.join(this.config.userConfRoot, 'certs', `${name}.key`);
@@ -441,8 +481,8 @@ module.exports = class Lando {
     // generate cert
     const {cert, key} = await createCert({
       ca: {
-        cert: read(caCert),
-        key: read(caKey),
+        cert: readFile(caCert),
+        key: readFile(caKey),
       },
       domains,
       organization,
@@ -452,8 +492,8 @@ module.exports = class Lando {
     // write
     // @NOTE: we just regenerate every single time because the logic is easier since things are dyanmic
     // and, presumably the cost is low?
-    write(certPath, cert);
-    write(keyPath, key);
+    writeFile(certPath, cert);
+    writeFile(keyPath, key);
     this.log.debug('generated cert/key pair %o %o', certPath, keyPath);
     return {certPath, keyPath};
   }
@@ -472,9 +512,6 @@ module.exports = class Lando {
    * const app = lando.getApp('/path/to/my/app')
    */
   getApp(startFrom = process.cwd(), warn = true) {
-    const getLandoFiles = require('../utils/get-lando-files');
-    const lmerge = require('../utils/legacy-merge');
-    const Yaml = require('./yaml');
     const yaml = new Yaml(this.log);
     // Grab lando files for this app
     const fileNames = _.flatten([this.config.preLandoFiles, [this.config.landoFile], this.config.postLandoFiles]);
@@ -491,30 +528,26 @@ module.exports = class Lando {
     const config = lmerge({}, ..._.map(landoFiles, file => yaml.load(file)));
     this.log.info('loading app %s from config files', config.name, landoFiles);
     // Return us some app!
-    const App = require('./app');
     return new App(config.name, _.merge({}, config, {files: landoFiles}), this);
   }
 
   async getInstallPluginsStatus(options = this.config.setup) {
-    const getPluginConfig = require('../utils/get-plugin-config');
-    const Plugin = require('../components/plugin');
-
     // reset Plugin static defaults for v3 purposes
     Plugin.config = getPluginConfig(this.config.pluginConfigFile, this.config.pluginConfig);
-    Plugin.debug = require('../utils/debug-shim')(this.log);
+    Plugin.debug = debugShim(this.log);
 
     // attempt to compute the destination to install the plugin
-    const {dir} = this.config.pluginDirs.find(dir => dir.type === require('../utils/get-plugin-type')());
+    const {dir} = this.config.pluginDirs.find(dir => dir.type === getPluginType());
 
     // event that lets plugins modify the status check
     await this.events.emit('pre-install-plugins', options);
 
     // prep tasks
-    const plugins = require('../utils/parse-to-plugin-strings')(options.plugins);
+    const plugins = parseToPluginStrings(options.plugins);
     const results = await Promise.all(plugins.map(async plugin => {
-      const {description, canInstall, isInstalled} = require('../utils/get-plugin-add-task')(plugin, {dir, Plugin});
+      const {description, canInstall, isInstalled} = getPluginAddTask(plugin, {dir, Plugin});
       // lets also check for any internal instances of the plugin so we dont reinstall
-      const parsed = require('../utils/parse-package-name')(plugin);
+      const parsed = parsePackageName(plugin);
       const inCore = path.resolve(__dirname, '..', 'plugins', parsed.package);
 
       // lets start optimistically
@@ -541,23 +574,20 @@ module.exports = class Lando {
   }
 
   async installPlugins(options = this.config.setup) {
-    const getPluginConfig = require('../utils/get-plugin-config');
-    const Plugin = require('../components/plugin');
-
     // reset Plugin static defaults for v3 purposes
     Plugin.config = getPluginConfig(this.config.pluginConfigFile, this.config.pluginConfig);
-    Plugin.debug = require('../utils/debug-shim')(this.log);
+    Plugin.debug = debugShim(this.log);
 
     // attempt to compute the destination to install the plugin
-    const {dir} = this.config.pluginDirs.find(dir => dir.type === require('../utils/get-plugin-type')());
+    const {dir} = this.config.pluginDirs.find(dir => dir.type === getPluginType());
 
     // event that lets plugins modify the install
     await this.events.emit('pre-install-plugins', options);
 
     // prep tasks
-    const tasks = require('../utils/parse-to-plugin-strings')(options.plugins)
-      .map(plugin => require('../utils/get-plugin-add-task')(plugin, {dir, Plugin}))
-      .map(task => require('../utils/parse-setup-task')({...task, count: false}));
+    const tasks = parseToPluginStrings(options.plugins)
+      .map(plugin => getPluginAddTask(plugin, {dir, Plugin}))
+      .map(task => parseSetupTask({...task, count: false}));
 
     // try to fetch the plugins
     const {data, errors, results, total} = await this.runTasks(tasks, {
@@ -602,7 +632,7 @@ module.exports = class Lando {
     // @NOTE: this is mostly just to test to make sure the default renderer works in GHA
     if (process.env.LANDO_RENDERER_FORCE === '1') options.rendererForce = true;
 
-    return await require('../utils/run-tasks')(tasks, _.merge(defaults, options));
+    return await runTasks(tasks, _.merge(defaults, options));
   }
 
   // this lets us reload plugins mid-process as though we were bootstrapping lando freshly
@@ -638,7 +668,7 @@ module.exports = class Lando {
     // if we should run setup tasks
     if (options.installTasks) {
       // wrap the tasks
-      options.tasks = resolveSetupTasks(options.tasks.map(task => require('../utils/parse-setup-task')(task)));
+      options.tasks = resolveSetupTasks(options.tasks.map(task => parseSetupTask(task)));
       // and then run them
       const {errors, results, total} = await this.runTasks(options.tasks,
         {
@@ -684,7 +714,7 @@ module.exports = class Lando {
 
     const results = await Promise.all(options.tasks.map(async task => {
       // break it up
-      const {id, canRun, comments, description, hasRun, requiresRestart, version} = require('../utils/parse-setup-task')(task); // eslint-disable-line max-len
+      const {id, canRun, comments, description, hasRun, requiresRestart, version} = parseSetupTask(task); // eslint-disable-line max-len
       // lets start optimistically
       const status = {version, description, id, state: 'INSTALLED'};
       // and slowly spiral down
@@ -713,4 +743,4 @@ module.exports = class Lando {
 
     return results;
   }
-};
+}

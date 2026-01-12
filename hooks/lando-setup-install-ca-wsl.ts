@@ -1,7 +1,13 @@
-'use strict';
 
-const os = require('os');
-const path = require('path');
+import os from 'os';
+import path from 'path';
+
+import debugShim from '../utils/debug-shim.js';
+import getFingerprint from '../utils/get-fingerprint.js';
+import getSystemCas from '../utils/get-system-cas.js';
+import isAdminUser from '../utils/is-admin-user.js';
+import runElevated from '../utils/run-elevated.js';
+import runPowershellScript from '../utils/run-powershell-script.js';
 
 /**
  * Installs the Lando Development Certificate Authority (CA) on Windows systems.
@@ -11,8 +17,8 @@ const path = require('path');
  * @param {Object} options - Options passed to the setup command
  * @return {Promise<void>}
  */
-module.exports = async (lando, options) => {
-  const debug = require('../utils/debug-shim')(lando.log);
+export default async (lando, options) => {
+  const debug = debugShim(lando.log);
 
   const {caCert} = lando.config;
 
@@ -30,11 +36,11 @@ module.exports = async (lando, options) => {
     },
     hasRun: async () => {
       try {
-        const fingerprint = require('../utils/get-fingerprint')(caCert);
+        const fingerprint = getFingerprint(caCert);
         debug('computed sha1 fingerprint %o for ca %o', fingerprint, caCert);
 
         // get fingerprints
-        const linuxfps = await require('../utils/get-system-cas')({platform: 'linux'});
+        const linuxfps = await getSystemCas({platform: 'linux'});
 
         // check if we have it in both
         return linuxfps.includes(fingerprint);
@@ -45,7 +51,7 @@ module.exports = async (lando, options) => {
     },
     canRun: async () => {
       // Check for admin privileges
-      if (!await require('../utils/is-admin-user')()) {
+      if (!await isAdminUser()) {
         throw new Error([
           `User "${lando.config.username}" does not have permission to trust the CA!`,
           'Contact your system admin for permission and then rerun setup.',
@@ -65,7 +71,7 @@ module.exports = async (lando, options) => {
           message: `Enter computer password for ${lando.config.username} to install the CA`,
           validate: async input => {
             const options = {debug, ignoreReturnCode: true, password: input};
-            const response = await require('../utils/run-elevated')(['echo', 'Validating elevated access'], options);
+            const response = await runElevated(['echo', 'Validating elevated access'], options);
             if (response.code !== 0) return response.stderr;
             return true;
           },
@@ -80,7 +86,7 @@ module.exports = async (lando, options) => {
       if (options.debug || options.verbose > 0 || lando.debuggy) command.push('--debug');
 
       // Execute the installation command with elevated privileges
-      const result = await require('../utils/run-elevated')(command, {debug, password: ctx.password});
+      const result = await runElevated(command, {debug, password: ctx.password});
 
       // Update task title on successful installation
       task.title = 'Installed Lando Development Certificate Authority (CA) to Linux store';
@@ -99,11 +105,11 @@ module.exports = async (lando, options) => {
     },
     hasRun: async () => {
       try {
-        const fingerprint = require('../utils/get-fingerprint')(caCert);
+        const fingerprint = getFingerprint(caCert);
         debug('computed sha1 fingerprint %o for ca %o', fingerprint, caCert);
 
         // get fingerprints
-        const winfps = await require('../utils/get-system-cas')();
+        const winfps = await getSystemCas();
 
         // check if we have it in both
         return winfps.includes(fingerprint);
@@ -127,7 +133,7 @@ module.exports = async (lando, options) => {
       if (!lando.config.isInteractive) args.push('-NonInteractive');
 
       // Run the installation command
-      const result = await require('../utils/run-powershell-script')(script, args, {debug});
+      const result = await runPowershellScript(script, args, {debug});
 
       // Update task title on successful installation
       task.title = 'Installed Lando Development Certificate Authority (CA) to Windows store';

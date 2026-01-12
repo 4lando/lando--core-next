@@ -1,12 +1,12 @@
-'use strict';
+import _ from 'lodash';
 
-// Modules
-const _ = require('lodash');
+import getUser from '../utils/get-user';
+import buildToolingRunner from '../utils/build-tooling-runner';
 
 // Other things
 const bashme = ['/bin/sh', '-c', 'if ! type bash > /dev/null; then sh; else bash; fi'];
 
-module.exports = (lando, app) => ({
+export default (lando, app) => ({
   command: 'ssh',
   usage: '$0 ssh [--command <command>] [--service <service>] [--user <user>]',
   examples: [
@@ -58,8 +58,8 @@ module.exports = (lando, app) => ({
         }
 
         // continue
-        if (_.isNull(user)) user = require('../utils/get-user')(service, app.info);
-        return lando.engine.run(require('../utils/build-tooling-runner')(
+        if (_.isNull(user)) user = getUser(service, app.info);
+        return lando.engine.run(buildToolingRunner(
           app,
           command,
           service,

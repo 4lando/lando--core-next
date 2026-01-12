@@ -1,11 +1,10 @@
-'use strict';
 
-const {color} = require('listr2');
+import {color} from '../utils/listr2.js';
 
 const {bold} = color;
 
 // checks to see if a setting is disabled
-module.exports = error => ({
+export default error => ({
   title: `Could not build app in "${error.id}!"`,
   type: 'warn',
   detail: [

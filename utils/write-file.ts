@@ -1,12 +1,13 @@
-'use strict';
+import yaml from '../components/yaml.js';
+import jsonfile from 'jsonfile';
 
-const fs = require('fs');
-const get = require('lodash/get');
-const path = require('path');
+import fs from 'fs';
+import get from 'lodash/get';
+import path from 'path';
 
 // @TODO: maybe extension should be in {options}?
 // @TODO: error handling, defaults etc?
-module.exports = (file, data, options = {}) => {
+export default (file, data, options = {}) => {
   // set extension if not set
   const extension = options.extension || path.extname(file);
   // linux line endings
@@ -34,7 +35,7 @@ module.exports = (file, data, options = {}) => {
       // otherwise use the normal js-yaml dump
       } else {
         try {
-          fs.writeFileSync(file, require('../components/yaml').dump(data, options));
+          fs.writeFileSync(file, yaml.dump(data, options));
         } catch (error) {
           throw new Error(error);
         }
@@ -42,7 +43,7 @@ module.exports = (file, data, options = {}) => {
       break;
     case '.json':
     case 'json':
-      require('jsonfile').writeFileSync(file, data, {spaces: 2, ...options});
+      jsonfile.writeFileSync(file, data, {spaces: 2, ...options});
       break;
     default:
       if (!fs.existsSync(file)) fs.mkdirSync(path.dirname(file), {recursive: true});

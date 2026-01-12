@@ -1,15 +1,14 @@
-'use strict';
+import Landerode from '../lib/docker.js';
+import LandoDaemon from '../lib/daemon.js';
+import Engine from '../lib/engine.js';
+import dockerCompose from '../lib/compose.js';
 
 const dc = (shell, bin, cmd, {compose, project, opts = {}}) => {
-  const dockerCompose = require('../lib/compose');
   const run = dockerCompose[cmd](compose, project, opts);
   return shell.sh([bin].concat(run.cmd), run.opts);
 };
 
-module.exports = (config, cache, events, log, shell, id) => {
-  const Engine = require('../lib/engine');
-  const Landerode = require('../lib/docker');
-  const LandoDaemon = require('../lib/daemon');
+export default (config, cache, events, log, shell, id) => {
   // get enginey stuff
   const {orchestratorBin, orchestratorVersion, dockerBin, engineConfig} = config;
   const docker = new Landerode(engineConfig, id);

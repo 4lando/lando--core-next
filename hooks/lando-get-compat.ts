@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async lando => {
+export default async lando => {
   // only run if engine bootstrap or above and if engine/orchestrator have been installed
   if (lando._bootstrapLevel >= 3) {
     if (lando.engine.composeInstalled && lando.engine.dockerInstalled ) {

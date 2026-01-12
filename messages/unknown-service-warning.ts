@@ -1,6 +1,5 @@
-'use strict';
 
-module.exports = service => ({
+export default service => ({
   title: 'Proxying to unknown service!',
   type: 'warning',
   detail: [

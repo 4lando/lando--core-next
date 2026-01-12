@@ -1,8 +1,6 @@
-'use strict';
+import _ from 'lodash';
 
-const _ = require('lodash');
-
-module.exports = lando => ({
+export default lando => ({
   command: 'config',
   level: 'tasks',
   describe: 'Displays the lando configuration',

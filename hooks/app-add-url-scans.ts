@@ -1,15 +1,17 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async (app, lando) => {
+import checksToTasks from '../utils/checks-to-tasks.js';
+import scanner from '../utils/scanner.js';
+
+export default async (app, lando) => {
   // get checks for each URL
   const checks = _(app.info)
     .filter(service => !_.isEmpty(service.urls))
     .flatMap(service => _(service.urls)
       .map(url => ({
         type: 'url-scan',
-        test: require('../utils/scanner'),
+        test: scanner,
         service: service.service,
         delay: _.get(app, `config.services.${service.service}.scanner.delay`, 1000),
         retry: _.get(app, `config.services.${service.service}.scanner.retry`, 25),
@@ -37,7 +39,7 @@ module.exports = async (app, lando) => {
     .map((tasks, name) => ({
       title: lando.cli.chalk.cyan(`${_.upperCase(name)} URLS`),
       task: (ctx, task) => {
-        const subtasks = _(tasks).map(subtask => require('../utils/checks-to-tasks')(subtask)).value();
+        const subtasks = _(tasks).map(subtask => checksToTasks(subtask)).value();
         return task.newListr(subtasks, {concurrent: true, exitOnError: false});
       },
     }))

@@ -1,8 +1,7 @@
-'use strict';
 
-const path = require('path');
+import path from 'path';
 
-module.exports = () => {
+export default () => {
   // if no SHELL and on windows then attempt to discover
   if (!process.env.SHELL && process.platform === 'win32') {
     const title = process.title.toUpperCase();

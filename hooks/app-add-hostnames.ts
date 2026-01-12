@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async app => {
+export default async app => {
   app.log.debug('adding hostnames to the app...');
   _.forEach(app.info, data => {
     data.hostnames = _.get(data, 'hostnames', []);

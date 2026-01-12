@@ -1,10 +1,11 @@
-'use strict';
+import slugify from './slugify.js';
+import dockerComposify from './docker-composify.js';
 
-const _ = require('lodash');
-const fs = require('fs');
-const lmerge = require('./legacy-merge');
-const path = require('path');
-const yaml = require('../components/yaml');
+import _ from 'lodash';
+import fs from 'fs';
+import lmerge from './legacy-merge.js';
+import path from 'path';
+import yaml from '../components/yaml.js';
 
 /*
  * Helper to load landofile
@@ -18,14 +19,14 @@ const loadLandoFile = file => {
   }
 };
 
-module.exports = (files, userConfRoot) => {
+export default (files, userConfRoot) => {
   const config = lmerge({}, ..._.map(files, file => loadLandoFile(file)));
   // if no name then return empty object
   if (!config.name) return {};
   // cast the name to a string...just to make sure.
-  config.name = require('../utils/slugify')(config.name);
+  config.name = slugify(config.name);
   // slugify project
-  config.project = require('../utils/docker-composify')(config.name);
+  config.project = dockerComposify(config.name);
 
   return _.merge({}, config, {
     configFiles: files,

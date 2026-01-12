@@ -1,8 +1,9 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import updateBuiltAgainst from './app-update-built-against.js';
+import rebuildTip from '../messages/rebuild-tip.js';
 
-module.exports = async (app, lando) => {
-  if (!_.has(app.meta, 'builtAgainst')) require('./app-update-built-against')(app, lando);
-  if (app.meta.builtAgainst !== app._config.version) app.addMessage(require('../messages/rebuild-tip'));
+export default async (app, lando) => {
+  if (!_.has(app.meta, 'builtAgainst')) updateBuiltAgainst(app, lando);
+  if (app.meta.builtAgainst !== app._config.version) app.addMessage(rebuildTip);
 };

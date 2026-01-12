@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // If the proxy isnt on then just bail
   if (lando.config.proxy !== 'ON') return;
 

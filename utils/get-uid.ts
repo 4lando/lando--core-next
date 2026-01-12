@@ -1,6 +1,5 @@
-'use strict';
 
-const _ = require('lodash');
-const os = require('os');
+import _ from 'lodash';
+import os from 'os';
 
-module.exports = () => (process.platform === 'win32') ? '1000' : _.toString(os.userInfo().uid);
+export default () => (process.platform === 'win32') ? '1000' : _.toString(os.userInfo().uid);

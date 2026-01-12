@@ -1,11 +1,12 @@
-'use strict';
+import getPathString from './get-path-string.js';
+import getUserShell from './get-user-shell.js';
 
-module.exports = (paths = [], shell = require('./get-user-shell')()) => {
+export default (paths = [], shell = getUserShell()) => {
   // return NADA if no paths
   if (paths.length === 0) return [];
 
   // stringify paths
-  paths = require('./get-path-string')(paths, shell);
+  paths = getPathString(paths, shell);
 
   // otherwise switchit
   switch (shell) {
@@ -25,7 +26,7 @@ module.exports = (paths = [], shell = require('./get-user-shell')()) => {
       // @TODO: we really need to use is-elevated instead of is-root but we are ommiting for now since lando
       // really cant run elevated anyway and its a bunch of extra effort to make all of this aysnc
       // in Lando 4 this will need to be resolved though.
-      return require('is-root')() ? [[`setx /M PATH "${paths}"`]] : [[`setx PATH "${paths}"`]];
+      return isRoot() ? [[`setx /M PATH "${paths}"`]] : [[`setx PATH "${paths}"`]];
 
     default:
       return [

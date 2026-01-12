@@ -1,11 +1,13 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import glob from '../utils/glob.js';
+import path from 'path';
+import {createRequire} from 'module';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const glob = require('glob');
-const Log = require('./logger');
-const path = require('path');
+import Log from './logger.js';
+import mergePromise from '../utils/merge-promise.js';
+
+const require = createRequire(import.meta.url);
 const resolver = (process.platform === 'win32') ? path.win32.resolve : path.posix.resolve;
 
 // List of autoload locations to scan for
@@ -36,7 +38,7 @@ const buildPlugin = (file, namespace)=> ({
 /*
  * @TODO
  */
-module.exports = class Plugins {
+export default class Plugins {
   registry: any[];
   log: any;
 
@@ -140,9 +142,15 @@ module.exports = class Plugins {
   load(plugin, file = plugin.path, ...injected) {
     // try to load the plugin and its data directly
     try {
-      plugin.data = dynamicRequire()(file)(...injected);
-    } catch (e) {
-      this.log.error('problem loading plugin %o from %o: %o', plugin.name, file, e.stack);
+      const mod = dynamicRequire()(file);
+      // Handle ESM modules that export default vs CommonJS modules
+      const pluginFn = typeof mod === 'function' ? mod : (mod.default || mod);
+      plugin.data = typeof pluginFn === 'function' ? pluginFn(...injected) : pluginFn;
+    } catch (e: any) {
+      const message = e?.message ?? String(e);
+      const stack = e?.stack ?? 'no stack trace available';
+      this.log.error('problem loading plugin %o from %o: %s', plugin.name, file, message);
+      this.log.debug('plugin %o error stack: %s', plugin.name, stack);
     }
 
     // Register, log, return
@@ -151,11 +159,11 @@ module.exports = class Plugins {
     this.log.silly('plugin %o has', plugin.name, plugin.data);
 
     // merge promise magix so we can await or not
-    return require('./../utils/merge-promise')(plugin, async () => {
+    return mergePromise(plugin, async () => {
       // if plugin.data is not a promise then just return plugin
       if (_.get(plugin, 'data.constructor.name') !== 'Promise') return {...plugin};
       // otherwise ASYNCIT
       return plugin.data.then(data => ({...plugin, data}));
     });
   }
-};
+}

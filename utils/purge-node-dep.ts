@@ -1,10 +1,9 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
-const remove = require('./remove');
+import fs from 'fs';
+import path from 'path';
+import remove from './remove.js';
 
-module.exports = (dir, dep) => {
+const purgeNodeDep = (dir, dep) => {
   if (!fs.existsSync(dir)) return;
 
   const entries = fs.readdirSync(dir);
@@ -21,8 +20,10 @@ module.exports = (dir, dep) => {
         }
       }
       if (!stats.isSymbolicLink()) {
-        module.exports(fpath, dep);
+        purgeNodeDep(fpath, dep);
       }
     }
   }
 };
+
+export default purgeNodeDep;

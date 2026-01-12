@@ -1,8 +1,7 @@
-'use strict';
 
-const path = require('path');
+import path from 'path';
 
-module.exports = (id = 'lando') => {
+export default (id = 'lando') => {
   switch (process.platform) {
     case 'darwin':
       return path.join('/', 'Library', 'Application Support', `${id[0].toUpperCase()}${id.slice(1).toLowerCase()}`);

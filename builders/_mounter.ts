@@ -1,9 +1,6 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
-const path = require('path');
-const toObject = require('../utils/to-object');
+import _ from 'lodash';
+import path from 'path';
+import toObject from '../utils/to-object';
 
 // Helper to get named volume
 const getNamedVolumeName = exclude => 'exclude_' + path
@@ -28,7 +25,7 @@ const getServiceVolumes = (excludes = [], base = '/tmp') => _(excludes)
 /*
  * Build CA service
  */
-module.exports = {
+export default {
   name: '_mounter',
   parent: '_lando',
   config: {

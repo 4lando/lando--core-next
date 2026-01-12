@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = (name, info = []) => {
+export default (name, info = []) => {
   // if no matching service return www-data
   if (!_.find(info, {service: name})) return 'www-data';
   // otherwise get the service

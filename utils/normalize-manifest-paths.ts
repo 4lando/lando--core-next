@@ -1,13 +1,12 @@
-'use strict';
 
-const get = require('lodash/get');
-const getKeys = require('./get-object-keys');
-const path = require('path');
-const set = require('lodash/set');
+import get from 'lodash/get';
+import getKeys from './get-object-keys.js';
+import path from 'path';
+import set from 'lodash/set';
 
 const defaultPathyKeys = ['hooks', 'registry', 'tasks'];
 
-module.exports = (data = {}, base, pathyKeys = defaultPathyKeys) => {
+export default (data = {}, base, pathyKeys = defaultPathyKeys) => {
   // @TODO: error handling?
 
   for (const key of getKeys(data)) {

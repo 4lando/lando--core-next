@@ -1,6 +1,5 @@
-'use strict';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   if (lando.config.channel !== 'none' && lando.cache.get('updates-2')) {
     const {updates} = lando.cache.get('updates-2');
     if (updates > 0) {

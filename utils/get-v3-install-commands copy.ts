@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = (deps, pkger, prefix = []) => _(deps)
+export default (deps, pkger, prefix = []) => _(deps)
   .map((version, pkg) => _.flatten([prefix, pkger(pkg, version)]))
   .map(command => command.join(' '))
   .value();

@@ -1,9 +1,9 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import parseEventsConfig from '../utils/parse-events-config.js';
 
-module.exports = async (app, lando, cmds, data, event) => {
-  const eventCommands = require('./../utils/parse-events-config')(cmds, app, data);
+export default async (app, lando, cmds, data, event) => {
+  const eventCommands = parseEventsConfig(cmds, app, data);
   // add perm sweeping to all v3 services
   if (!_.isEmpty(eventCommands)) {
     const permsweepers = _(eventCommands)

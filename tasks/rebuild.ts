@@ -1,9 +1,9 @@
-'use strict';
+import _ from 'lodash';
+import utils from './../lib/utils';
 
-const _ = require('lodash');
-const utils = require('./../lib/utils');
+import landoRunSetup from '../hooks/lando-run-setup';
 
-module.exports = lando => {
+export default lando => {
   return {
     command: 'rebuild',
     describe: 'Rebuilds your app from scratch, preserving data',
@@ -34,7 +34,7 @@ module.exports = lando => {
         console.log(lando.cli.makeArt('appRebuild', {name: app.name, phase: 'pre'}));
 
         // run setup if we need to
-        await require('../hooks/lando-run-setup')(lando);
+        await landoRunSetup(lando);
 
         try {
           // If user has given us options then set those

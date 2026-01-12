@@ -1,11 +1,12 @@
-'use strict';
 
-const _ = require('lodash');
-const hasher = require('object-hash');
-const merge = require('../utils/merge');
-const path = require('path');
-const parseUrl = require('../utils/parse-proxy-url');
-const url = require('url');
+import _ from 'lodash';
+import hasher from 'object-hash';
+import merge from '../utils/merge.js';
+import path from 'path';
+import parseUrl from '../utils/parse-proxy-url.js';
+import url from 'url';
+import unknownServiceWarning from '../messages/unknown-service-warning.js';
+import cannotStartProxyWarning from '../messages/cannot-start-proxy-warning.js';
 
 /*
  * Helper to scanPorts
@@ -236,7 +237,7 @@ const parseRoutes = (service, urls = [], sslReady, labels = {}) => {
   return labels;
 };
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // Only do things if the proxy is enabled
   if (lando.config.proxy === 'ON' && (!_.isEmpty(app.config.proxy) || !_.isEmpty(app.config.recipe))) {
     // generate proxy cert
@@ -315,7 +316,7 @@ module.exports = async (app, lando) => {
     .map(service => {
       // Throw error but proceed if we don't have the service
       if (!_.includes(app.services, service.name)) {
-        app.addMessage(require('../messages/unknown-service-warning')(service.name));
+        app.addMessage(unknownServiceWarning(service.name));
         return {};
       }
 
@@ -351,7 +352,7 @@ module.exports = async (app, lando) => {
     // Warn the user if this fails
     .catch(error => {
       if (!error.message || error.message === '') error.message = 'UNKNOWN ERROR';
-      app.addWarning(require('../messages/cannot-start-proxy-warning')(error.message), error);
+      app.addWarning(cannotStartProxyWarning(error.message), error);
     });
   }
 };

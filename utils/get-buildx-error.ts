@@ -1,8 +1,7 @@
-'use strict';
 
-const LandoError = require('../components/error');
+import LandoError from '../components/error.js';
 
-module.exports = ({code = 1, stderr = '', stdout = '', messages = ''} = {}) => {
+export default ({code = 1, stderr = '', stdout = '', messages = ''} = {}) => {
   // start by getting the buiild lines
   const buildlines = stderr.split('\n').filter(line => line.startsWith('#'));
 

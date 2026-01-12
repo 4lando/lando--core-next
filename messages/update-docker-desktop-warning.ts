@@ -1,7 +1,6 @@
-'use strict';
 
 // checks to see if a setting is disabled
-module.exports = ({os}) => ({
+export default ({os}) => ({
   type: 'warning',
   title: 'Recommend updating DOCKER DESKTOP',
   detail: [

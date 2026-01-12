@@ -1,21 +1,22 @@
-
-
-'use strict';
+import mergePromise from './merge-promise.js';
 
 // Modules
-const merge = require('lodash/merge');
-const {color} = require('listr2');
+import merge from 'lodash/merge';
+import {color} from './listr2.js';
+import {spawn} from 'child_process';
+import createDebug from './debug.js';
 
-const {spawn} = require('child_process');
+// Create debug logger for this module
+const defaultDebug = createDebug('@lando/run-command');
 
 // get the bosmang
 const defaults = {
-  debug: require('debug')('@lando/run-command'),
+  debug: defaultDebug,
   ignoreReturnCode: false,
   env: process.env,
 };
 
-module.exports = (command, args = [], options = {}, stdout = '', stderr = '') => {
+export default (command, args = [], options = {}, stdout = '', stderr = '') => {
   // @TODO: error handling?
   // merge our options over the defaults
   options = merge({}, defaults, options);
@@ -26,7 +27,7 @@ module.exports = (command, args = [], options = {}, stdout = '', stderr = '') =>
   debug('running command pid=%o %o %o', child.pid, command, args);
 
 
-  return require('./merge-promise')(child, async () => {
+  return mergePromise(child, async () => {
     return new Promise((resolve, reject) => {
       child.on('error', error => {
         debug('command pid=$o %o error %o', child.pid, command, error?.message);

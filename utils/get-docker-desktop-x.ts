@@ -1,10 +1,9 @@
-'use strict';
 
-const getWinEnvar = require('../utils/get-win32-envvar-from-wsl');
-const path = require('path');
-const wslpath = require('./winpath-2-wslpath');
+import getWinEnvar from './get-win32-envvar-from-wsl.js';
+import path from 'path';
+import wslpath from './winpath-2-wslpath.js';
 
-module.exports = (platform = process.landoPlatform ?? process.platform) => {
+export default (platform = process.landoPlatform ?? process.platform) => {
   switch (platform) {
     case 'darwin':
       return '/Applications/Docker.app';

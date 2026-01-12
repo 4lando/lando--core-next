@@ -1,16 +1,29 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import chalk from 'chalk';
+import yargs from 'yargs';
+import yargonaut from 'yargonaut';
+import inquirer from 'inquirer';
+import sudoBlock from 'sudo-block';
+import isInteractive from 'is-interactive';
+import {ux} from '@oclif/core';
+import {createRequire} from 'module';
+import Debug from '../utils/debug.js';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
+import formatters from './formatters.js';
+import getSysDataPath from '../utils/get-system-data-dir.js';
+import Lando from './lando.js';
+import art from './art.js';
+import Yaml from './yaml.js';
+import prettify from '../utils/prettify.js';
+import isDevVersion from '../utils/is-dev-version.js';
+import getCommitHash from '../utils/get-commit-hash.js';
+
+const require = createRequire(import.meta.url);
 
 const EOL = os.EOL;
-
-const formatters = require('./formatters');
-const getSysDataPath = require('../utils/get-system-data-dir');
-const Lando = require('./lando');
 
 // Global options
 const globalOptions = {
@@ -54,7 +67,7 @@ const globalOptions = {
 /*
  * Construct the CLI
  */
-module.exports = class Cli {
+export default class Cli {
   prefix: string;
   logLevel: string;
   userConfRoot: string;
@@ -67,14 +80,15 @@ module.exports = class Cli {
     logLevel = 'warn',
     userConfRoot = path.join(os.homedir(), '.lando'),
     coreBase = path.resolve(__dirname, '..'),
-    debug = require('debug')('@lando/cli'),
+    // eslint-disable-next-line new-cap
+    debugInstance = Debug('@lando/cli'),
   ) {
     this.prefix = prefix;
     this.logLevel = logLevel;
     this.userConfRoot = userConfRoot;
     this.coreBase = coreBase;
-    this.debug = debug;
-    this.chalk = require('chalk');
+    this.debug = debugInstance;
+    this.chalk = chalk;
   }
 
   /**
@@ -88,7 +102,7 @@ module.exports = class Cli {
    * @todo make this static and then fix all call sites
    */
   argv() {
-    return require('yargs').help(false).version(false).argv;
+    return yargs.help(false).version(false).argv;
   }
 
   /**
@@ -101,7 +115,6 @@ module.exports = class Cli {
    * lando.cli.checkPerms()
    */
   checkPerms() {
-    const sudoBlock = require('sudo-block');
     sudoBlock(this.makeArt('sudoRun'));
   }
 
@@ -152,7 +165,7 @@ module.exports = class Cli {
     // whether the cli is "packaged" eg a self-contained binary or not
     const packaged = _.has(process, 'pkg');
     // cli is packaged and also is a "dev" release
-    const dev = packaged && require('../utils/is-dev-version')(pjson.version);
+    const dev = packaged && isDevVersion(pjson.version);
 
     // when packaged this resolves symlinks and gives you the actual absolute path of the binary
     // when run from source it gives you the path to js entrypoint
@@ -166,7 +179,7 @@ module.exports = class Cli {
     // if the cli is running from source (eg a git repo) or not
     const args = process.execArgv;
     const source = fs.existsSync(path.join(srcRoot, '.git', 'HEAD'));
-    const commit = source ? require('../utils/get-commit-hash')(srcRoot, {short: true}) : false;
+    const commit = source ? getCommitHash(srcRoot, {short: true}) : false;
     const coreBase = this.coreBase === path.resolve(__dirname, '..');
     const slim = !fs.existsSync(path.resolve(__dirname, '..', 'FATCORE'));
 
@@ -185,7 +198,7 @@ module.exports = class Cli {
       experimental: false,
       envPrefix: this.prefix,
       fatcore: !slim,
-      isInteractive: require('is-interactive')(),
+      isInteractive: isInteractive(),
       landoFile: '.lando.yml',
       landoFileConfig: appConfig,
       leia: _.has(process, 'env.LEIA_PARSER_RUNNING'),
@@ -241,11 +254,11 @@ module.exports = class Cli {
   }
 
   getInquirer() {
-    return require('inquirer');
+    return inquirer;
   }
 
   getUX() {
-    return require('@oclif/core').ux;
+    return ux;
   }
 
   isDebug() {
@@ -279,8 +292,7 @@ module.exports = class Cli {
 
     // Ask question if we haven't sent error reporting yet and the terminal is capable of answering
     return lando.Promise.try(() => {
-      if (_.isNil(lando.cache.get('report_errors')) && require('is-interactive')()) {
-        const inquirer = require('inquirer');
+      if (_.isNil(lando.cache.get('report_errors')) && isInteractive()) {
         console.error(this.makeArt('crash'));
         const test = {
           name: 'reportErrors',
@@ -372,7 +384,7 @@ module.exports = class Cli {
    * console.log(lando.cli.makeArt('secretToggle', true);
    */
   makeArt(func, opts) {
-    return require('./art')[func](opts);
+    return art[func](opts);
   }
 
   /**
@@ -458,7 +470,11 @@ module.exports = class Cli {
           // if run is already a function
           if (_.isFunction(run)) return run(data.options, lando, config);
           // if we have a task then do that
-          else if (file && fs.existsSync(file)) return require(file)(lando, config).run(data.options);
+          else if (file && fs.existsSync(file)) {
+            const taskModule = require(file);
+            const taskFn = taskModule.default || taskModule;
+            return taskFn(lando, config).run(data.options);
+          }
           // error?
           throw new Error(`Could not locate a runner for ${command}!`);
         })
@@ -509,16 +525,14 @@ module.exports = class Cli {
   }
 
   prettify(data, {arraySeparator = ', '} = {}) {
-    return require('../utils/prettify')(data, {arraySeparator});
+    return prettify(data, {arraySeparator});
   }
 
   /*
    * Run the CLI
    */
   run(tasks = [], config = {}) {
-    const yargonaut = require('yargonaut');
     yargonaut.style('green').errorsStyle('red');
-    const yargs = require('yargs');
     const {clear, channel, experimental, secretToggle} = yargs.argv;
 
     // Handle global flag error conditions first
@@ -561,11 +575,10 @@ module.exports = class Cli {
    * Toggle a toggle
    */
   updateUserConfig(data = {}) {
-    const Yaml = require(`../lib/yaml`);
     const yaml = new Yaml();
     const configFile = path.join(this.defaultConfig().userConfRoot, 'config.yml');
     const config = (fs.existsSync(configFile)) ? yaml.load(configFile) : {};
     const file = yaml.dump(configFile, _.assign({}, config, data));
     return yaml.load(file);
   }
-};
+}

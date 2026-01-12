@@ -1,9 +1,8 @@
-'use strict';
 
 /*
  * brief wrapper to accomodate lando 3 conventions when using lando 4 plugin fetching
  */
-module.exports = (config = {}, auth = [], scope = []) => {
+export default (config = {}, auth = [], scope = []) => {
   // if auth if a string hing push directly
   if (typeof config.auth === 'string') auth.push(config.auth);
 

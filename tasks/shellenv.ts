@@ -1,9 +1,19 @@
-'use strict';
+import os from 'os';
+import {color} from '../utils/listr2.js';
+import isRoot from 'is-root';
+import stringArgv from 'string-argv';
 
-const os = require('os');
-const {color} = require('listr2');
+import debugShim from '../utils/debug-shim';
+import getBinPaths from '../utils/get-bin-paths';
+import getShellenv from '../utils/get-shellenv';
+import getShellProfile from '../utils/get-shell-profile';
+import getUserShell from '../utils/get-user-shell';
+import isInPath from '../utils/is-in-path';
+import runCommand from '../utils/run-command';
+import runElevated from '../utils/run-elevated';
+import updateShellProfile from '../utils/update-shell-profile';
 
-module.exports = lando => {
+export default lando => {
   return {
     command: 'shellenv',
     usage: '$0 shellenv [--check] [--shell <shell>]',
@@ -26,16 +36,16 @@ module.exports = lando => {
     },
 
     run: async options => {
-      const debug = require('../utils/debug-shim')(lando.log);
+      const debug = debugShim(lando.log);
 
       // get shell paths from cli
       // @NOTE: in lando 3 it _should_be impossible for this to be undefined but should we throw an error?
-      const binPaths = require('../utils/get-bin-paths')(lando?.config?.cli);
-      const shellEnv = require('../utils/get-shellenv')(binPaths);
+      const binPaths = getBinPaths(lando?.config?.cli);
+      const shellEnv = getShellenv(binPaths);
 
       // if add is passed in but is empty then attempt to discover
       if (options.add !== undefined && options.add === '') {
-        options.add = require('../utils/get-shell-profile')();
+        options.add = getShellProfile();
         options.a = options.add;
         debug('attempting to use %o as the rcfile', options.add);
       }
@@ -43,16 +53,16 @@ module.exports = lando => {
       // if we are adding
       if (options.add) {
         // handle the special case of cmd.exe since it has no relavent shell profile
-        if (shellEnv.length > 0 && require('../utils/get-user-shell')() === 'cmd.exe') {
+        if (shellEnv.length > 0 && getUserShell() === 'cmd.exe') {
           // build out args
-          const args = require('string-argv')(shellEnv.map(line => line[0]).join(' && '));
+          const args = stringArgv(shellEnv.map(line => line[0]).join(' && '));
 
           // @TODO: we really need to use is-elevated instead of is-root but we are ommiting for now since lando
           // really cant run elevated anyway and its a bunch of extra effort to make all of this aysnc
           // in Lando 4 this will need to be resolved though.
-          const {stderr, code} = require('is-root')()
-            ? await require('../utils/run-elevated')(args, {debug})
-            : await require('../utils/run-command')(args[0], args.slice(1), {debug, ignoreReturnCode: true});
+          const {stderr, code} = isRoot()
+            ? await runElevated(args, {debug})
+            : await runCommand(args[0], args.slice(1), {debug, ignoreReturnCode: true});
 
           // throw error
           if (code !== 0) throw new Error(`Could not add to PATH with error: ${stderr}`);
@@ -67,7 +77,7 @@ module.exports = lando => {
 
         // otherwise update the shell profile
         } else if (shellEnv.length > 0) {
-          require('../utils/update-shell-profile')(options.add, shellEnv);
+          updateShellProfile(options.add, shellEnv);
           console.log(`Updated ${color.green(options.add)} to include:`);
           console.log();
           console.log(color.bold(shellEnv.map(line => line[0]).join(os.EOL)));
@@ -80,7 +90,7 @@ module.exports = lando => {
       // if we are checking
       } else if (options.check) {
         const {entrypoint} = lando?.config?.cli ?? {};
-        if (require('../utils/is-in-path')(entrypoint)) {
+        if (isInPath(entrypoint)) {
           console.log(`${color.green(entrypoint)} is in ${color.bold('PATH')}`);
         // throw if not
         } else throw new Error(`${color.red(entrypoint)} does not appear to be in ${color.bold('PATH')}!`);

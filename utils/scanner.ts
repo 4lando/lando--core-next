@@ -1,12 +1,11 @@
-'use strict';
 
-const _ = require('lodash');
-const debug = require('debug')('@lando/core:scanner');
-const getAxios = require('./get-axios');
+import _ from 'lodash';
+import createDebug from './debug.js'; const debug = createDebug('@lando/core:scanner');
+import getAxios from './get-axios.js';
 
 const request = (maxRedirects = 0) => getAxios({maxRedirects}, {}, {rejectUnauthorized: false});
 
-module.exports = (baseURL, {okCodes = [], maxRedirects = 0, log = debug, path = '/', timeout = 3000} = {}) => {
+export default (baseURL, {okCodes = [], maxRedirects = 0, log = debug, path = '/', timeout = 3000} = {}) => {
   return request(maxRedirects).get(path, {baseURL, timeout})
     .then(response => {
       response.lando = {code: _.get(response, 'status', 'unknown'), text: _.get(response, 'statusText', 'unknown')};

@@ -1,6 +1,9 @@
-'use strict';
+import debugShim from '../utils/debug-shim';
+import getPluginRemoveTask from '../utils/get-plugin-remove-task';
+import parsePackageName from '../utils/parse-package-name';
+import Plugin from '../components/plugin';
 
-module.exports = lando => {
+export default lando => {
   return {
     command: 'plugin-remove',
     usage: '$0 plugin-remove <plugin> [plugin...]',
@@ -15,21 +18,19 @@ module.exports = lando => {
       },
     },
     run: async options => {
-      const Plugin = require('../components/plugin');
-
       // reset Plugin.debug to use the lando 3 debugger
-      Plugin.debug = require('../utils/debug-shim')(lando.log);
+      Plugin.debug = debugShim(lando.log);
 
       // merge plugins together, parse/normalize their names and return only unique values
       const plugins = options._.slice(1)
-        .map(plugin => require('../utils/parse-package-name')(plugin).name)
+        .map(plugin => parsePackageName(plugin).name)
         .filter((plugin, index, array) => array.indexOf(plugin) === index);
       lando.log.debug('attempting to remove plugins %j', plugins);
 
       // prep listr things
       const tasks = plugins
         .map(plugin => ([lando.config.plugins.find(p => p.name === plugin), plugin]))
-        .map(([plugin, fallback]) => require('../utils/get-plugin-remove-task')(plugin, {fallback, Plugin}));
+        .map(([plugin, fallback]) => getPluginRemoveTask(plugin, {fallback, Plugin}));
 
       // try to remove the plugins
       const {errors, results, total} = await lando.runTasks(tasks, {

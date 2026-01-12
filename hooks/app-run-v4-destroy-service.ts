@@ -1,8 +1,8 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
+import makeError from '../utils/make-error.js';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // @TODO: dc tasks
   // @TODO: error message handler ./messages/app-destroy-v4-service-error
 
@@ -29,7 +29,7 @@ module.exports = async (app, lando) => {
         try {
           await service.destroy();
         } catch (error) {
-          const err = require('../utils/make-error')({error});
+          const err = makeError({error});
           err.context = {id: container};
           ctx.errors.push(err);
           throw err;

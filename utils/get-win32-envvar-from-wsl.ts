@@ -1,7 +1,7 @@
-'use strict';
+import spawnSyncStringer from './spawn-sync-stringer.js';
 
-module.exports = varname => {
+export default varname => {
   const args = ['-Command', `[Environment]::GetEnvironmentVariable('${varname}')`];
-  const {stdout} = require('./spawn-sync-stringer')('powershell.exe', args, {encoding: 'utf-8'});
+  const {stdout} = spawnSyncStringer('powershell.exe', args, {encoding: 'utf-8'});
   return stdout.trim();
 };

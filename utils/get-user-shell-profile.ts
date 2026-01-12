@@ -1,9 +1,10 @@
-'use strict';
+import getPwshProfile from './get-pwsh-profile.js';
+import getUserShell from './get-user-shell.js';
 
-const os = require('os');
-const path = require('path');
+import os from 'os';
+import path from 'path';
 
-module.exports = (shell = require('./get-user-shell')()) => {
+export default (shell = getUserShell()) => {
   if (!shell) {
     console.error('Could not detect shell!');
     return null;
@@ -29,7 +30,7 @@ module.exports = (shell = require('./get-user-shell')()) => {
       return path.join(os.homedir(), '.tcshrc');
     case 'powershell.exe':
     case 'pswh':
-      return require('./get-pwsh-profile')();
+      return getPwshProfile();
     case 'zsh':
     case 'zsh.exe':
       return path.join(os.homedir(), '.zshrc');

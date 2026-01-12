@@ -1,7 +1,6 @@
-'use strict';
 
 // checks to see if a setting is disabled
-module.exports = ({
+export default ({
   title: 'This app was built on a different version of Lando.',
   detail: [
     'While it may not be necessary, we highly recommend you update the app.',

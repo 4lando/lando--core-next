@@ -1,12 +1,11 @@
-'use strict';
 
-const _ = require('lodash');
-const path = require('path');
+import _ from 'lodash';
+import path from 'path';
 
 /*
  * Parse config into raw materials for our factory
  */
-module.exports = (recipe, app) => _.merge({}, _.get(app, 'config.config', {}), {
+export default (recipe, app) => _.merge({}, _.get(app, 'config.config', {}), {
   _app: app,
   app: app.name,
   confDest: path.join(app._config.userConfRoot, 'config', recipe),

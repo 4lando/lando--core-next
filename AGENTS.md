@@ -38,7 +38,7 @@ lando--core-next/
 | Add service type | `builders/` | Extend _service.ts or _service-v4.ts |
 | Hook into lifecycle | `hooks/` | Name: `[context]-[action]-[subject].ts` |
 | Add utility function | `utils/` | Pure functions, no state |
-| Modify Docker behavior | `lib/engine.ts`, `lib/compose.ts` | dockerode wrapper |
+| Modify Docker behavior | `lib/engine.ts`, `lib/compose.ts`, `lib/docker-effect.ts` | Bun.$ CLI for Docker, dockerode wrapper removed |
 | Change proxy config | `packages/proxy/` | Traefik-based |
 | Add setup step | `hooks/lando-setup-*.ts` | Runs on `lando setup` |
 | Debug bootstrap | `lib/lando.ts` | 4 levels: config→tasks→engine→app |
@@ -97,7 +97,7 @@ export const helper = () => { ... };
 
 ### Heavy Dependencies
 - `lodash`: Use throughout (`_.get`, `_.merge`, `_.map`)
-- `dockerode`: Docker API (wrapped by Engine)
+- `dockerode`: **Removed** - Replaced with Bun.$ CLI and lib/docker-effect.ts (ESM-compatible)
 
 ## ANTI-PATTERNS (THIS PROJECT)
 
@@ -118,8 +118,18 @@ export const helper = () => { ... };
 
 ## COMMANDS
 
+Default to using Bun instead of Node.js.
+
+- Use `bun <file>` instead of `node <file>` or `ts-node <file>`
+- Use `bun test` instead of `jest` or `vitest`
+- Use `bun build <file.html|file.ts|file.css>` instead of `webpack` or `esbuild`
+- Use `bun install` instead of `npm install` or `yarn install` or `pnpm install`
+- Use `bun run <script>` instead of `npm run <script>` or `yarn run <script>` or `pnpm run <script>`
+- Use `bunx <package> <command>` instead of `npx <package> <command>`
+- Bun automatically loads .env, so don't use dotenv.
+
 ```bash
-# Development (all via Bun)
+# Development
 bun run lint              # ESLint check
 bun test                  # Unit tests (Bun test runner)
 bun run test:leia         # Integration tests (Leia, requires Docker)
@@ -134,7 +144,26 @@ lando rebuild             # Rebuild containers
 lando destroy             # Remove app completely
 ```
 
+## Bun APIs
+
+- `Bun.serve()` supports WebSockets, HTTPS, and routes. Don't use `express`.
+- `WebSocket` is built-in. Don't use `ws`.
+- Prefer `Bun.file` over `node:fs`'s readFile/writeFile
+- Bun.$`ls` instead of execa.
+
+For more information, read the Bun API docs in `node_modules/bun-types/docs/**.mdx`.
+
 ## TESTING
+
+Use `bun test` to run unit tests.
+
+```ts#index.test.ts
+import { test, expect } from "bun:test";
+
+test("hello world", () => {
+  expect(1).toBe(1);
+});
+```
 
 - **Unit**: `test/*.spec.ts` (Bun test runner)
 - **Integration**: `examples/*/README.md` files contain bash code blocks parsed by Leia framework

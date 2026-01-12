@@ -1,8 +1,8 @@
-'use strict';
+import _ from 'lodash';
 
-const _ = require('lodash');
+import parseRecipeConfig from '../utils/parse-recipe-config.js';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   if (_.has(app, 'config.recipe')) {
     // Throw a warning if recipe is not supported
     if (_.isEmpty(_.find(lando.factory.get(), {name: app.config.recipe}))) {
@@ -13,7 +13,7 @@ module.exports = async (app, lando) => {
     // Build da things
     // @NOTE: this also gathers app.info and build steps
     const Recipe = lando.factory.get(app.config.recipe);
-    const config = require('../utils/parse-recipe-config')(app.config.recipe, app);
+    const config = parseRecipeConfig(app.config.recipe, app);
 
     // Get recipe config
     const recipe = new Recipe(config.name, config).config;

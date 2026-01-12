@@ -1,7 +1,6 @@
-'use strict';
 
 // checks to see if a setting is disabled
-module.exports = () => ({
+export default () => ({
   type: 'warning',
   title: 'Recommend updating DOCKER COMPOSE',
   detail: [

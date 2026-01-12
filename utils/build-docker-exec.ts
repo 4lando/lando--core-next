@@ -1,6 +1,5 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 /*
  * Build docker exec opts
@@ -50,7 +49,7 @@ const getExecOpts = (docker, datum) => {
   return exec;
 };
 
-module.exports = (injected, stdio, datum = {}) => {
+export default (injected, stdio, datum = {}) => {
   // Depending on whether injected is the app or lando
   const dockerBin = injected.config.dockerBin || injected._config.dockerBin;
   const opts = {mode: 'attach', cstdio: stdio};

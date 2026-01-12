@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = prefix => {
+export default prefix => {
   // Strip it down
   _.each(process.env, (value, key) => {
     if (_.includes(key, prefix)) {

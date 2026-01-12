@@ -1,16 +1,37 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import {createRequire} from 'module';
 
-const fs = require('fs');
-const isObject = require('lodash/isPlainObject');
-const merge = require('lodash/merge');
-const path = require('path');
-const uniq = require('lodash/uniq');
-const write = require('../utils/write-file');
-const toPosixPath = require('../utils/to-posix-path');
+import isObject from 'lodash/isPlainObject';
+import merge from 'lodash/merge';
+import uniq from 'lodash/uniq';
+import debug from '../utils/debug.js';
+import stringArgv from 'string-argv';
+import validPath from 'valid-path';
+import {nanoid} from 'nanoid';
 
-const LandoError = require('../components/error');
+import write from '../utils/write-file';
+import toPosixPath from '../utils/to-posix-path';
+import LandoError from '../components/error';
+import normalizeMounts from '../utils/normalize-mounts';
+import normalizeStorage from '../utils/normalize-storage';
+import parseV4User from '../utils/parse-v4-user';
+import isDisabled from '../utils/is-disabled';
+import getProxyHostnames from '../packages/proxy/get-proxy-hostnames';
+import getGid from '../utils/get-gid';
+import getUid from '../utils/get-uid';
+import getUsername from '../utils/get-username';
 
-const {nanoid} = require('nanoid');
+import certsPackage from '../packages/certs/certs';
+import gitPackage from '../packages/git/git';
+import proxyPackage from '../packages/proxy/proxy';
+import securityPackage from '../packages/security/security';
+import sudoPackage from '../packages/sudo/sudo';
+import userPackage from '../packages/user/user';
+import sshAgentPackage from '../packages/ssh-agent/ssh-agent';
+
+// createRequire for dynamic JSON loading
+const require = createRequire(import.meta.url);
 
 const states = {APP: 'UNBUILT'};
 const stages = {
@@ -58,7 +79,7 @@ const groups = {
 /*
  * The lowest level lando service, this is where a lot of the deep magic lives
  */
-module.exports = {
+export default {
   api: 4,
   name: 'lando',
   parent: 'l337',
@@ -92,7 +113,7 @@ module.exports = {
   },
   router: () => ({}),
   builder: (parent, defaults) => class LandoServiceV4 extends parent {
-    static debug = require('debug')('@lando/l337-service-v4');
+    static debug = debug('@lando/l337-service-v4');
 
     #run = {
       environment: [],
@@ -101,15 +122,15 @@ module.exports = {
     };
 
     #installers = {
-      'certs': require('../packages/certs/certs'),
-      'git': require('../packages/git/git'),
-      'proxy': require('../packages/proxy/proxy'),
-      'security': require('../packages/security/security'),
-      'sudo': require('../packages/sudo/sudo'),
-      'user': require('../packages/user/user'),
+      'certs': certsPackage,
+      'git': gitPackage,
+      'proxy': proxyPackage,
+      'security': securityPackage,
+      'sudo': sudoPackage,
+      'user': userPackage,
 
       // @TODO: this is a temp implementation until we have an ssh-agent container
-      'ssh-agent': require('../packages/ssh-agent/ssh-agent'),
+      'ssh-agent': sshAgentPackage,
     };
 
     #addRunEnvironment(data) {
@@ -195,7 +216,7 @@ module.exports = {
       if (isObject(this.appMount)) this.appMount = {...this.appMount, source: this.appRoot};
 
       // unshift it onto mounts
-      this.mounts.unshift(...require('../utils/normalize-mounts')([this.appMount], this));
+      this.mounts.unshift(...normalizeMounts([this.appMount], this));
 
       // then normalize it so we can get the target
       this.appMount = this.normalizeVolumes([this.appMount])?.[0]?.target;
@@ -215,7 +236,7 @@ module.exports = {
         .map(storage => ({...storage, type: storage.type.split(':')[1] ?? 'volume'}));
 
       // normalize and pass on storage if applicable
-      if (storage.length > 0) this.storage.push(...require('../utils/normalize-storage')(storage, this));
+      if (storage.length > 0) this.storage.push(...normalizeStorage(storage, this));
 
       // loop through non-storage mounts and add them
       for (const mount of this.mounts.filter(mount => !mount.type.startsWith('storage'))) {
@@ -286,7 +307,7 @@ module.exports = {
       // before we call super we need to separate things
       const {config, ...upstream} = merge({}, defaults, options);
       // consolidate user info with any incoming stuff
-      const user = merge({}, {gid, uid, name: username}, require('../utils/parse-v4-user')(config.user));
+      const user = merge({}, {gid, uid, name: username}, parseV4User(config.user));
 
       // this will change but for right now i just need the image stuff to passthrough
       upstream.config = {image: config.image, ports: config.ports};
@@ -322,27 +343,27 @@ module.exports = {
       this.certs = config.certs;
       this.healthcheck = config.healthcheck;
       this.hostnames = uniq([...config.hostnames, `${this.id}.${this.project}.internal`]);
-      this.mounts = require('../utils/normalize-mounts')([...config.mounts, ...config.mount], this);
+      this.mounts = normalizeMounts([...config.mounts, ...config.mount], this);
       this.overrides = config.overrides;
       this.packages = config.packages;
       this.security = config.security;
       this.security.cas.push(caCert, path.join(path.dirname(caCert), `${caDomain}.pem`));
-      this.storage = require('../utils/normalize-storage')([...config.storage, ...config['persistent-storage']], this);
+      this.storage = normalizeStorage([...config.storage, ...config['persistent-storage']], this);
       this.volumes = config.volumes;
       this.workdir = undefined;
 
       // if app mount is enabled then hook that up
-      if (!require('../utils/is-disabled')(this.appMount)) this.#setupAppMount();
+      if (!isDisabled(this.appMount)) this.#setupAppMount();
       // if not then we need to sus out a workign directory
       else this.workdir = config?.overrides?.working_dir ?? config?.working_dir ?? '/';
 
       // if we have a command then also set that up
-      if (!require('../utils/is-disabled')(config.command)) {
+      if (!isDisabled(config.command)) {
         this.command = this.#handleScriptyInput(config.command, {id: `${this.id}-command.sh`});
       }
 
       // ditto for entrypoint
-      if (!require('../utils/is-disabled')(config.entrypoint)) {
+      if (!isDisabled(config.entrypoint)) {
         this.entrypoint = this.#handleScriptyInput(config.entrypoint, {id: `${this.id}-entrypoint.sh`});
       }
 
@@ -366,7 +387,7 @@ module.exports = {
       if (lando.config?.proxy === 'ON') {
         this.packages.proxy = {
           volume: `${lando.config.proxyName}_proxy_config`,
-          domains: require('../packages/proxy/get-proxy-hostnames')(app?.config?.proxy?.[id] ?? []),
+          domains: getProxyHostnames(app?.config?.proxy?.[id] ?? []),
         };
       }
 
@@ -410,10 +431,10 @@ module.exports = {
         LANDO: 'ON',
         LANDO_DEBUG: lando.debuggy ? '1' : '',
         LANDO_HOST_IP: 'host.lando.internal',
-        LANDO_HOST_GID: require('../utils/get-gid')(),
+        LANDO_HOST_GID: getGid(),
         LANDO_HOST_OS: process.platform,
-        LANDO_HOST_UID: require('../utils/get-uid')(),
-        LANDO_HOST_USER: require('../utils/get-username')(),
+        LANDO_HOST_UID: getUid(),
+        LANDO_HOST_USER: getUsername(),
         LANDO_LEIA: lando.config.leia === false ? '0' : '1',
         LANDO_PROJECT: this.project,
         LANDO_SERVICE_API: 4,
@@ -456,7 +477,7 @@ module.exports = {
 
 
       // if file is actually script content we need to normalize and dump it first
-      if (!require('valid-path')(toPosixPath(file), {simpleReturn: true})) {
+      if (!validPath(toPosixPath(file), {simpleReturn: true})) {
         // split the file into lines
         file = file.split('\n');
         // trim any empty lines at the top
@@ -608,7 +629,7 @@ module.exports = {
       // parse command
       const parseCommand = command => {
         if (!command) return [];
-        return typeof command === 'string' ? require('string-argv')(command) : command;
+        return typeof command === 'string' ? stringArgv(command) : command;
       };
 
       // add command wrapper to image
@@ -673,7 +694,7 @@ module.exports = {
     async installPackages() {
       await Promise.all(Object.entries(this.packages).map(async ([id, data]) => {
         this.debug('adding package %o with args: %o', id, data);
-        if (!require('../utils/is-disabled')(data)) {
+        if (!isDisabled(data)) {
           await this.addPackage(id, data);
         }
       }));

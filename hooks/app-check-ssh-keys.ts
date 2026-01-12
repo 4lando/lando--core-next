@@ -1,10 +1,10 @@
-'use strict';
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+import maxKeyTip from '../messages/max-key-tip.js';
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // Get keys on host
   const sshDir = path.resolve(lando.config.home, '.ssh');
   const keys = _(fs.readdirSync(sshDir))
@@ -19,6 +19,6 @@ module.exports = async (app, lando) => {
   app.log.silly('users keys', keys);
   // Add a warning if we have more keys than the warning level
   if (keySize > lando.config.maxKeyWarning) {
-    app.addMessage(require('../messages/max-key-tip'));
+    app.addMessage(maxKeyTip);
   }
 };

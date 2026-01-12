@@ -1,11 +1,11 @@
-'use strict';
+import readFile from './read-file.js';
 
-const fs = require('fs');
+import fs from 'fs';
 
-module.exports = file => {
+export default file => {
   // if the file doesnt exist then return an empty object
   if (!fs.existsSync(file)) return {};
   // otherwise load the file and return it
-  return require('./read-file')(file);
+  return readFile(file);
 };
 

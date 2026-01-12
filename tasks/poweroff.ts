@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = lando => {
+export default lando => {
   return {
     command: 'poweroff',
     describe: 'Spins down all lando related containers',

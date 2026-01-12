@@ -1,133 +1,169 @@
-'use strict';
+/// <reference types="bun-types" />
+import _ from 'lodash';
+import fs from 'fs';
+import Promise from './promise.js';
+import toLandoContainer from '../utils/to-lando-container.js';
+import dockerComposify from '../utils/docker-composify.js';
+import { DockerClient, getDockerClient } from './docker-effect.js';
+import type { ContainerListOptions, NetworkCreateOptions, NetworkInfo } from './docker-effect.js';
 
-// Modules
-const _ = require('lodash');
-const Dockerode = require('dockerode');
-const fs = require('fs');
-const Promise = require('./promise');
+interface ContainerData {
+  Id: string;
+  Labels: Record<string, string>;
+  Status: string;
+}
 
-/*
- * Helper for direct container opts
- */
-const containerOpt = (container, method, message, opts = {}) => container[method](opts).catch(err => {
-  throw new Error(err, message, container);
-});
-
-/*
- * Helper to determine files exists in an array of files
- */
-const srcExists = (files = []) => _.reduce(files, (exists, file) => fs.existsSync(file) || exists, false);
-
-/*
- * Creates a new yaml instance.
- */
-module.exports = class Landerode extends Dockerode {
+interface LandoContainer {
   id: string;
+  service: string;
+  name: string;
+  app: string;
+  kind: string;
+  lando: boolean;
+  instance: string;
+  status: string;
+  src: string[];
+  running?: boolean;
+}
 
-  constructor(opts: any = {}, id = 'lando', promise = Promise) {
-    opts.Promise = promise;
-    super(opts);
+const srcExists = (files: string[] = []) => _.reduce(files, (exists, file) => fs.existsSync(file) || exists, false);
+
+export default class Landerode {
+  id: string;
+  private client: DockerClient | null = null;
+  private opts: Record<string, unknown>;
+
+  constructor(opts: Record<string, unknown> = {}, id = 'lando') {
+    this.opts = opts;
     this.id = id;
   }
 
-  /*
-   * Creates a network
-   */
-  createNet(name, opts = {}) {
-    return this.createNetwork(_.merge({}, opts, {Name: name, Attachable: true, Internal: true}))
-    // Wrap errors.
-    .catch(err => {
-      throw new Error(err, 'Error creating network.');
-    });
+  private async getClient(): Promise<DockerClient> {
+    if (!this.client) {
+      const socketPath = (this.opts.socketPath as string) || process.env.DOCKER_HOST || '/var/run/docker.sock';
+      this.client = await getDockerClient({ socketPath });
+    }
+    return this.client;
   }
 
-  /*
-   * Inspects a container.
-   */
-  scan(cid) {
-    return containerOpt(this.getContainer(cid), 'inspect', 'Error inspecting container: %j');
-  }
-
-  /*
-   * Return true if the container is running otherwise false.
-   */
-  isRunning(cid) {
-    return this.scan(cid)
-    // Get the running state
-    .then(data => _.get(data, 'State.Running', false))
-    // If the container no longer exists, return false since it isn't running.
-    // This will prevent a race condition from happening.
-    // Wrap errors.
-    .catch(err => {
-      // This was true for docker composer 1.26.x and below
-      if (_.includes(err.message, `No such container: ${cid}`)) return false;
-      // This is what it looks like for 1.27 and above
-      else if (_.includes(err.message, `no such container -`)) return false;
-      // Otherwise throw
-      else throw err;
-    });
-  }
-
-  /*
-   * Returns a list of Lando containers
-   */
-  list(options = {}, separator = '_') {
-    const toLandoContainer = require('../utils/to-lando-container');
-    const dockerComposify = require('../utils/docker-composify');
-
-    return this.listContainers(options)
-    .then(containers => {
-      return containers
-        .filter(_.identity)
-        .filter(data => data.Status !== 'Removal In Progress')
-        .map(container => toLandoContainer(container, separator))
-        .filter(data => data.lando === true)
-        .filter(data => data.instance === this.id);
-    })
-    .then(containers => {
-      const keepPromises = containers.map(container => {
-        if (!srcExists(container.src) && container.kind === 'app') {
-          return this.remove(container.id, {force: true}).then(() => false);
-        }
-        return Promise.resolve(true);
+  async createNet(name: string, opts: Partial<NetworkCreateOptions> = {}): Promise<{ Id: string }> {
+    const client = await this.getClient();
+    try {
+      return await client.createNetwork({
+        Name: name,
+        Attachable: true,
+        Internal: true,
+        ...opts,
       });
-      return Promise.all(keepPromises).then(keeps => containers.filter((_, i) => keeps[i]));
-    })
-    .then(containers => {
-      if (options.project) return _.filter(containers, c => c.app === options.project);
-      if (options.app) return _.filter(containers, c => c.app === dockerComposify(options.app));
-      return containers;
-    })
-    .then(containers => {
-      if (!_.isEmpty(options.filter)) {
-        return _.filter(containers, _.fromPairs(_.map(options.filter, filter => filter.split('='))));
+    } catch (err) {
+      throw new Error(`Error creating network: ${err}`);
+    }
+  }
+
+  async scan(cid: string): Promise<unknown> {
+    const client = await this.getClient();
+    const result = await client.inspectContainer(cid);
+    if (!result) {
+      throw new Error(`Error inspecting container: ${cid}`);
+    }
+    return result;
+  }
+
+  async isRunning(cid: string): Promise<boolean> {
+    try {
+      const data = await this.scan(cid);
+      return _.get(data, 'State.Running', false);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (message.includes(`No such container: ${cid}`)) return false;
+      if (message.includes('no such container')) return false;
+      throw err;
+    }
+  }
+
+  async list(options: Record<string, unknown> = {}, separator = '_'): Promise<LandoContainer[]> {
+    const client = await this.getClient();
+
+    const listOpts: ContainerListOptions = {
+      all: options.all as boolean | undefined,
+    };
+
+    const containers = await client.listContainers(listOpts);
+
+    let result: LandoContainer[] = ([...containers] as unknown as ContainerData[])
+      .filter(Boolean)
+      .filter((data) => data.Status !== 'Removal In Progress')
+      .map((container) => toLandoContainer(container, separator) as LandoContainer)
+      .filter((data) => data.lando === true)
+      .filter((data) => data.instance === this.id);
+
+    const keepPromises = result.map(async (container) => {
+      if (!srcExists(container.src) && container.kind === 'app') {
+        await this.remove(container.id, { force: true });
+        return false;
       }
-      return containers;
-    })
-    .then(containers => {
-      if (_.find(containers, container => container.status === 'Up Less than a second')) {
-        return this.list(options, separator);
-      }
-      return containers;
-    })
-    .then(containers => containers.map(container => {
+      return true;
+    });
+
+    const keeps = await Promise.all(keepPromises);
+    result = result.filter((_, i) => keeps[i]);
+
+    if (options.project) {
+      result = result.filter((c) => c.app === options.project);
+    }
+    if (options.app) {
+      result = result.filter((c) => c.app === dockerComposify(options.app as string));
+    }
+
+    if (!_.isEmpty(options.filter)) {
+      const filterPairs = _.fromPairs(
+        _.map(options.filter as string[], (filter: string) => filter.split('='))
+      );
+      result = _.filter(result, filterPairs) as LandoContainer[];
+    }
+
+    if (result.find((container) => container.status === 'Up Less than a second')) {
+      return this.list(options, separator);
+    }
+
+    return result.map((container) => {
       container.running = container && typeof container.status === 'string' && !container.status.includes('Exited');
       return container;
-    }));
+    });
   }
 
-  /*
-   * Remove a container.
-   * @todo: do we even use this anymore?
-   */
-  remove(cid, opts = {v: true, force: false}) {
-    return containerOpt(this.getContainer(cid), 'remove', 'Error removing container: %j', opts);
+  async remove(cid: string, opts: { v?: boolean; force?: boolean } = { v: true, force: false }): Promise<void> {
+    const client = await this.getClient();
+    await client.removeContainer(cid, { force: opts.force, volumes: opts.v });
   }
 
-  /*
-   * Do a docker stop
-   */
-  stop(cid, opts = {}) {
-    return containerOpt(this.getContainer(cid), 'stop', 'Error stopping container: %j', opts);
+  async stop(cid: string, opts: { t?: number } = {}): Promise<void> {
+    const client = await this.getClient();
+    await client.stopContainer(cid, opts.t);
   }
-};
+
+  async getContainer(cid: string): Promise<unknown> {
+    const client = await this.getClient();
+    return client.getContainer(cid);
+  }
+
+  async getNetwork(name: string): Promise<NetworkInfo | null> {
+    const client = await this.getClient();
+    return client.getNetwork(name);
+  }
+
+  async listNetworks(filters?: Record<string, string[]>): Promise<NetworkInfo[]> {
+    const client = await this.getClient();
+    return client.listNetworks(filters);
+  }
+
+  async listContainers(options: ContainerListOptions = {}): Promise<readonly unknown[]> {
+    const client = await this.getClient();
+    return client.listContainers(options);
+  }
+
+  async ping(): Promise<string> {
+    const client = await this.getClient();
+    return client.ping();
+  }
+}

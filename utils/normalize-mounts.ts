@@ -1,15 +1,14 @@
-'use strict';
 
-const fs = require('fs');
-const isObject = require('lodash/isPlainObject');
-const orderBy = require('lodash/orderBy');
-const path = require('path');
-const toPosixPath = require('./to-posix-path');
-const remove = require('./remove');
-const write = require('./write-file');
-const uniq = require('lodash/uniq');
+import fs from 'fs';
+import isObject from 'lodash/isPlainObject';
+import orderBy from 'lodash/orderBy';
+import path from 'path';
+import toPosixPath from './to-posix-path.js';
+import remove from './remove.js';
+import write from './write-file.js';
+import uniq from 'lodash/uniq';
 
-module.exports = (mounts, {_data, appRoot, normalizeVolumes, tmpdir, user}) => {
+export default (mounts, {_data, appRoot, normalizeVolumes, tmpdir, user}) => {
   return mounts.map(mount => {
     // if mount is a single string then assume its a bind mount and normalize
     if (typeof mount === 'string' && toPosixPath(mount).split(':').length > 1) {

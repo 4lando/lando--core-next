@@ -1,6 +1,5 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 const parseUrls = (urls = []) => {
   return urls.map(url => {
@@ -14,7 +13,7 @@ const parseUrls = (urls = []) => {
   .filter(hostname => hostname !== undefined);
 };
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   const certServices = app.info
     .filter(service => service.hasCerts === true)
     .map(service => ({

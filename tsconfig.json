@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "compilerOptions": {
-    // Target modern Node.js
+    // Target modern Bun/Node.js with ESM
     "target": "ES2022",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "moduleDetection": "force",
     "lib": ["ES2022"],
 
@@ -16,16 +16,16 @@
     "emitDeclarationOnly": true,
     "declarationDir": "./dist/types",
 
-    // Permissive settings for gradual adoption
+    // Moderately strict settings for better DX
     "strict": false,
-    "noImplicitAny": false,
-    "strictNullChecks": false,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
     "strictFunctionTypes": false,
     "strictBindCallApply": false,
     "strictPropertyInitialization": false,
-    "noImplicitThis": false,
-    "useUnknownInCatchVariables": false,
-    "alwaysStrict": false,
+    "noImplicitThis": true,
+    "useUnknownInCatchVariables": true,
+    "alwaysStrict": true,
 
     // Interop settings
     "esModuleInterop": true,
@@ -43,6 +43,7 @@
     ],
     // Explicitly list type packages to avoid picking up docs/vendor dirs
     "types": [
+      "bun",
       "node"
     ],
     

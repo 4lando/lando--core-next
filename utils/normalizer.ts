@@ -1,5 +1,4 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = data => (!_.isArray(data)) ? [data] : data;
+export default data => (!_.isArray(data)) ? [data] : data;

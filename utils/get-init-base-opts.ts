@@ -1,6 +1,6 @@
-'use strict';
+import getInitAuxOpts from './get-init-aux-opts.js';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 // Helper to get default options
 const defaultOpts = {
@@ -44,8 +44,8 @@ const coreOpts = sources => ({
   },
 });
 
-module.exports = (recipes = [], sources = []) => _.merge(
+export default (recipes = [], sources = []) => _.merge(
   defaultOpts,
   coreOpts(sources),
-  require('./get-init-aux-opts')(recipes),
+  getInitAuxOpts(recipes),
 );

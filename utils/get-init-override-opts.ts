@@ -1,11 +1,11 @@
-'use strict';
+import getInitAuxOpts from './get-init-aux-opts.js';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 const getConfig = (data = [], name) => _.find(data, {name});
 
-module.exports = (inits = [], recipes = [], sources = []) => {
-  const opts = require('./get-init-aux-opts')(recipes);
+export default (inits = [], recipes = [], sources = []) => {
+  const opts = getInitAuxOpts(recipes);
   _.forEach(opts, (opt, key) => {
     const isRec = key === 'recipe';
     // NOTE: when seems like the most relevant override here, should we consider adding more?

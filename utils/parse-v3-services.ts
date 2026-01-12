@@ -1,15 +1,15 @@
-'use strict';
+import getServiceApiVersion from './get-service-api-version.js';
 
 // Modules
-const _ = require('lodash');
-const path = require('path');
+import _ from 'lodash';
+import path from 'path';
 
 // adds required methods to ensure the lando v3 debugger can be injected into v4 things
-module.exports = (config, app) => _(config)
+export default (config, app) => _(config)
   // Arrayify
   .map((service, name) => _.merge({}, service, {name}))
   // ensure api is set to something valid
-  .map(service => _.merge({}, service, {api: require('./get-service-api-version')(service.api)}))
+  .map(service => _.merge({}, service, {api: getServiceApiVersion(service.api)}))
   // Filter out any services without a type, this implicitly assumes these
   // services are "managed" by lando eg their type/version details are provided
   // by another service

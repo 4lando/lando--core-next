@@ -1,8 +1,7 @@
-'use strict';
 
-const fs = require('fs');
-const forge = require('node-forge');
-const read = require('./read-file');
+import fs from 'fs';
+import forge from 'node-forge';
+import read from './read-file.js';
 
 /**
  * Get the fingerprint of the certificate
@@ -10,7 +9,7 @@ const read = require('./read-file');
  * @param {string} [sha='sha1'] - Hash algorithm to use
  * @return {string} Fingerprint of the certificate
  */
-module.exports = (input, sha = 'sha1') => {
+export default (input, sha = 'sha1') => {
   // Read file contents if input is a file path, otherwise use input as is
   const contents = fs.existsSync(input) ? read(input) : input;
 

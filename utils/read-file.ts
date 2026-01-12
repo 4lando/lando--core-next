@@ -1,9 +1,10 @@
-'use strict';
+import yaml from '../components/yaml.js';
+import jsonfile from 'jsonfile';
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
-module.exports = (file, options = {}) => {
+export default (file, options = {}) => {
   // @TODO: file does nto exist?
 
   // set extension if not set
@@ -16,13 +17,15 @@ module.exports = (file, options = {}) => {
     case '.yml':
     case 'yaml':
     case 'yml':
-      return require('../components/yaml').load(fs.readFileSync(file, 'utf8'), options);
+      return yaml.load(fs.readFileSync(file, 'utf8'), options);
     case '.js':
     case 'js':
+      // Dynamic require for loading arbitrary .js files at runtime - must stay as require()
+      // since the file path is user-provided and not known at build time
       return require(file);
     case '.json':
     case 'json':
-      return require('jsonfile').readFileSync(file, options);
+      return jsonfile.readFileSync(file, options);
     default:
       return fs.readFileSync(file, 'utf8');
   }

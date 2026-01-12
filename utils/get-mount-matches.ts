@@ -1,10 +1,9 @@
-'use strict';
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 // checks to see if dir is being mounted
-module.exports = (dir, volumes = []) => volumes
+export default (dir, volumes = []) => volumes
   // filter out non string bind mounts
   .filter(volume => volume.split(':').length === 2 || volume.split(':').length === 3)
   // parse into object format

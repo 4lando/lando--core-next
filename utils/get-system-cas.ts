@@ -1,6 +1,10 @@
-'use strict';
+import {systemCertsAsync} from 'system-ca';
+import winCA from 'win-ca';
+import macCa from 'mac-ca';
+import runCommand from './run-command.js';
+import getFingerprint from './get-fingerprint.js';
 
-const os = require('os');
+import os from 'os';
 
 /*
  * Retrieves system Certificate Authority (CA) certificates based on the current platform.
@@ -17,7 +21,7 @@ const os = require('os');
  * @throws {Error} May throw errors during certificate processing, which are logged
  *                 to the console but do not interrupt the function's execution.
  */
-module.exports = async ({
+export default async ({
   format = 'fingerprint',
   platform = process.landoPlatform ?? process.platform,
 }= {}) => {
@@ -26,14 +30,14 @@ module.exports = async ({
   switch (platform) {
     case 'darwin':
       // For macOS, we use the 'mac-ca' library which handles the formatting
-      return require('mac-ca').get({format});
+      return macCa.get({format});
 
     case 'linux': {
       // For Linux, we use the 'system-ca' library to get system certificates
-      const {systemCertsAsync} = require('system-ca');
+      // systemCertsAsync imported at top
       for (const cert of await systemCertsAsync()) {
         try {
-          fingerprints.push(require('./get-fingerprint')(cert));
+          fingerprints.push(getFingerprint(cert));
         } catch {
           // This is a noop because we dont care if a cert fails to process
           // when it's not our CA.
@@ -44,11 +48,11 @@ module.exports = async ({
     }
     case 'win32': {
       // For Windows, we use the 'win-ca' library to fetch root certificates
-      const winCA = require('win-ca');
+      // winCA imported at top
 
       for (const cert of [...winCA({generator: true, store: ['root'], format: winCA.der2.pem})]) {
         try {
-          fingerprints.push(require('./get-fingerprint')(cert));
+          fingerprints.push(getFingerprint(cert));
         } catch {
           // This is a noop because we dont care if a cert fails to process
           // when it's not our CA.
@@ -58,7 +62,7 @@ module.exports = async ({
       return fingerprints;
     }
     case 'wsl': {
-      const {stdout} = await require('./run-command')(
+      const {stdout} = await runCommand(
         'powershell.exe',
         ['-Command', 'Get-ChildItem -Path Cert:\\CurrentUser\\Root | Select-Object -ExpandProperty Thumbprint'],
       );

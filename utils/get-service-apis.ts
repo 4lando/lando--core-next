@@ -1,8 +1,7 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = app => {
+export default app => {
   const v4 = _.get(app, 'v4.services', []);
   const v3 = _.get(app, 'parsedV3Services', []);
 

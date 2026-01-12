@@ -1,10 +1,11 @@
-'use strict';
+import createDebug from './debug.js';
+const defaultDebug = createDebug('@lando/validate-script');
 
-const forge = require('node-forge');
-const read = require('./read-file');
+import forge from 'node-forge';
+import read from './read-file.js';
 
-module.exports = (cert, key, {
-  debug = require('debug')('@lando/validate-script'),
+export default (cert, key, {
+  debug = defaultDebug,
 } = {}) => {
   try {
     cert = forge.pki.certificateFromPem(read(cert));

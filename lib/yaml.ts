@@ -1,16 +1,9 @@
-'use strict';
+import fs from 'fs';
+import path from 'path';
+import yaml from '../components/yaml.js';
+import Log from './logger.js';
 
-// Modules
-const fs = require('fs');
-const path = require('path');
-const yaml = require('../components/yaml');
-
-const Log = require('./logger');
-
-/*
- * Creates a new yaml instance.
- */
-module.exports = class Yaml {
+export default class Yaml {
   log: any;
 
   constructor(log = new Log()) {
@@ -55,4 +48,4 @@ module.exports = class Yaml {
     // Log and return filename
     return file;
   }
-};
+}

@@ -1,24 +1,28 @@
-'use strict';
+import mergePromise from './merge-promise.js';
 
 // Modules
-const merge = require('lodash/merge');
-const read = require('./read-file');
-const winpath = require('./wslpath-2-winpath');
+import merge from 'lodash/merge';
+import read from './read-file.js';
+import winpath from './wslpath-2-winpath.js';
+import createDebug from './debug.js';
 
-const {spawn, spawnSync} = require('child_process');
+import {spawn, spawnSync} from 'child_process';
 
-const parseArgs = args => args.map(arg => arg.startsWith('-') ? arg : `"${arg}"`).join(' ');
+const parseArgs = (args: string[]) => args.map(arg => arg.startsWith('-') ? arg : `"${arg}"`).join(' ');
+
+// Create debug logger
+const defaultDebug = createDebug('@lando/run-powershell-script');
 
 // get the bosmang
 const defaults = {
   encode: undefined,
   env: process.env,
-  debug: require('debug')('@lando/run-powershell-script'),
+  debug: defaultDebug,
   ignoreReturnCode: false,
   toWSLPath: false,
 };
 
-module.exports = (script, args = [], options = {}, stdout = '', stderr = '', cargs = []) => {
+export default (script, args = [], options = {}, stdout = '', stderr = '', cargs = []) => {
   // merge our options over the defaults
   options = merge({}, defaults, options);
 
@@ -47,7 +51,7 @@ module.exports = (script, args = [], options = {}, stdout = '', stderr = '', car
   debug('running powershell script %o %o %o', script, args);
   const child = spawn('powershell.exe', ['-NoProfile'].concat(cargs), options);
 
-  return require('./merge-promise')(child, async () => {
+  return mergePromise(child, async () => {
     return new Promise((resolve, reject) => {
       child.on('error', error => {
         debug('powershell script %o error %o', script, error?.message);

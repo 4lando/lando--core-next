@@ -1,8 +1,6 @@
-'use strict';
+import _ from 'lodash';
 
-const _ = require('lodash');
-
-module.exports = lando => ({
+export default lando => ({
   command: 'logs',
   describe: 'Displays logs for your app',
   usage: '$0 logs [--follow] [--service <service>...] [--timestamps]',

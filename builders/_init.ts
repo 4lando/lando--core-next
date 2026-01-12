@@ -1,12 +1,9 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
+import _ from 'lodash';
 
 /*
  * Build CA service
  */
-module.exports = {
+export default {
   name: '_init',
   parent: '_lando',
   config: {

@@ -1,7 +1,6 @@
-'use strict';
 
-const os = require('os');
-const path = require('path');
+import os from 'os';
+import path from 'path';
 
 const getOClifHome = () => {
   switch (process.platform) {
@@ -31,7 +30,7 @@ const macosCacheDir = product => {
   return process.platform === 'darwin' ? path.join(getOClifHome(), 'Library', 'Caches', product) : undefined;
 };
 
-module.exports = (product = 'hyperdrive') => {
+export default (product = 'hyperdrive') => {
   return process.env[`${product.toUpperCase()}_CACHE_DIR`]
     || macosCacheDir(product)
     || getOClifBase(product);

@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = lando => {
+export default lando => {
   return {
     command: 'share',
     usage: '$0 share',

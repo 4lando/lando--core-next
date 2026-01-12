@@ -1,234 +1,145 @@
-'use strict';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import * as util from 'node:util';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
-const serialize = require('winston/lib/winston/common').serialize;
-const winston = require('winston');
-const util = require('util');
+type LogLevel = 'error' | 'warn' | 'info' | 'verbose' | 'debug' | 'silly';
 
-// Constants
-const logLevels = {
-  '0': 'error',
-  '1': 'warn',
-  '2': 'info',
-  '3': 'verbose',
-  '4': 'debug',
-  '5': 'silly',
-};
-const logColors = {
-  error: 'bgRed',
-  warn: 'bgYellow',
-  info: 'bold',
-  verbose: 'gray',
-  debug: 'dim',
-  silly: 'blue',
-  timestamp: 'magenta',
-  lando: 'cyan',
-  app: 'green',
-  extra: 'dim',
-};
-const userLevels = ['warn', 'error'];
+interface LoggerOptions {
+  logDir?: string;
+  logLevelConsole?: LogLevel;
+  logLevel?: LogLevel;
+  logName?: string;
+}
 
-// Rewriters
-const keySanitizer = sanitizeKey => (level, msg, meta) => {
-  // start with a deep clone of meta so we dont mutate important underlying data
-  const data = _.cloneDeep(meta);
-  // change data as needed
-  _.forEach(data, (value, key) => {
-    if (sanitizeKey instanceof RegExp && sanitizeKey.test(key)) data[key] = '****';
-    else if (sanitizeKey === key) data[key] = '****';
-  });
-
-  return data;
+const LEVEL_VALUES: Record<LogLevel, number> = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  verbose: 3,
+  debug: 4,
+  silly: 5,
 };
 
+const LEVEL_COLORS: Record<LogLevel, string> = {
+  error: '\x1b[31m',
+  warn: '\x1b[33m',
+  info: '\x1b[32m',
+  verbose: '\x1b[36m',
+  debug: '\x1b[34m',
+  silly: '\x1b[35m',
+};
 
-/**
- * Logs a debug message.
- *
- * Debug messages are intended to communicate lifecycle milestones and events that are relevant to developers
- *
- * @since 3.0.0
- * @function
- * @name lando.log.debug
- * @alias lando.log.debug
- * @param {String} msg A string that will be passed into nodes core `utils.format()`
- * @param {...Any} [values] Values to be passed `utils.format()`
- * @example
- * // Log a debug message
- * lando.log.debug('All details about docker inspect %j', massiveObject);
- */
-/**
- * Logs an error message.
- *
- * Errors are intended to communicate there is a serious problem with the application
- *
- * @since 3.0.0
- * @function
- * @name lando.log.error
- * @alias lando.log.error
- * @param {String} msg A string that will be passed into nodes core `utils.format()`
- * @param {...Any} [values] Values to be passed `utils.format()`
- * @example
- * // Log an error message
- * lando.log.error('This is an err with details %s', err);
- */
-/**
- * Logs an info message.
- *
- * Info messages are intended to communicate lifecycle milestones and events that are relevant to users
- *
- * @since 3.0.0
- * @function
- * @name lando.log.info
- * @alias lando.log.info
- * @param {String} msg A string that will be passed into nodes core `utils.format()`
- * @param {...Any} [values] Values to be passed `utils.format()`
- * @example
- * // Log an info message
- * lando.log.info('It is happening!');
- */
-/**
- * Logs a silly message.
- *
- * Silly messages are meant for hardcore debugging
- *
- * @since 3.0.0
- * @function
- * @name lando.log.silly
- * @alias lando.log.silly
- * @param {String} msg A string that will be passed into nodes core `utils.format()`
- * @param {...Any} [values] Values to be passed `utils.format()`
- * @example
- * // Log a silly message
- * lando.log.silly('All details about all the things', unreasonablySizedObject);
- *
- * // Log a silly message
- * lando.log.silly('If you are seeing this you have delved too greedily and too deep and likely have awoken something.');
- */
-/**
- * Logs a verbose message.
- *
- * Verbose messages are intended to communicate extra information to the user and basics to a developer. They sit somewhere
- * in between info and debug
- *
- * @since 3.0.0
- * @function
- * @name lando.log.verbose
- * @alias lando.log.verbose
- * @param {String} msg A string that will be passed into nodes core `utils.format()`
- * @param {...Any} [values] Values to be passed `utils.format()`
- * @example
- * // Log a verbose message
- * lando.log.verbose('Config file %j loaded from %d', config, directory);
- */
-/**
- * Logs a warning message.
- *
- * Warnings are intended to communicate you _might_ have a problem.
- *
- * @since 3.0.0
- * @function
- * @name lando.log.warn
- * @alias lando.log.warn
- * @param {String} msg A string that will be passed into nodes core `utils.format()`
- * @param {...Any} [values] Values to be passed `utils.format()`
- * @example
- * // Log a warning message
- * lando.log.warning('Something is up with app %s in directory %s', appName, dir);
- */
-module.exports = class Log extends winston.Logger {
-  lasttime: number;
+const RESET = '\x1b[0m';
 
-  constructor({logDir, extra, logLevelConsole = 'warn', logLevel = 'debug', logName = 'lando'}: {
-    logDir?: string, extra?: string, logLevelConsole?: string | number, logLevel?: string, logName?: string
-  } = {}) {
-    // If loglevelconsole is numeric lets map it!
-    if (_.isInteger(logLevelConsole)) logLevelConsole = logLevels[logLevelConsole];
+export class Log {
+  private logDir: string;
+  private logLevelConsole: LogLevel;
+  private logLevel: LogLevel;
+  private logName: string;
+  private sanitizedKeys: string[] = [];
+  private errorStream: fs.WriteStream | null = null;
+  private mainStream: fs.WriteStream | null = null;
 
-    // The default console transport
-    const transports = [
-      new winston.transports.Console({
-        timestamp: () => Date.now(),
-        formatter: options => {
-          // Get da prefixes
-          const element = (logName === 'lando') ? 'lando' : logName;
-          const elementColor = (logName === 'lando') ? 'lando' : 'app';
+  constructor(options: LoggerOptions = {}) {
+    this.logDir = options.logDir || '';
+    this.logLevelConsole = options.logLevelConsole || 'warn';
+    this.logLevel = options.logLevel || 'debug';
+    this.logName = options.logName || 'lando';
 
-          //  approximate debug mod timestamp
-          const curr = Number(new Date());
-          const ms = curr - (this.lasttime || curr);
-          this.lasttime = curr;
-
-          // build useful things first
-          const prefix = winston.config.colorize(elementColor, element.toLowerCase());
-          const level = winston.config.colorize(options.level, options.level.toUpperCase());
-          const msg = util.format(options.message);
-          const meta = serialize(options.meta);
-          const timestamp = winston.config.colorize(elementColor, `+${ms}ms`);
-
-          // If this is a warning or error and we aren't verbose then we have more "normal" output
-          if (_.includes(userLevels, options.level) && _.includes(userLevels, logLevelConsole)) {
-            return [level, '==>', msg].join(' ');
-          }
-
-          // debug output
-          const output = [prefix, msg, meta, timestamp];
-          // if we have extra stuff
-          if (typeof extra === 'string') output.splice(1, 0, winston.config.colorize('extra', extra.toLowerCase()));
-          // if error or warning then try to make it more obvious by splicing in the level
-          if (_.includes(userLevels, options.level)) output.splice(1, 0, level);
-          // return
-          return `  ${output.join(' ')}`;
-        },
-        label: logName,
-        level: logLevelConsole,
-        colorize: true,
-        stderrLevels: ['error', 'info', 'verbose', 'debug', 'silly'],
-      }),
-    ];
-
-    // If we have a log path then let's add in some file transports
-    if (logDir) {
-      // Ensure the log dir actually exists
-      fs.mkdirSync(logDir, {recursive: true});
-      // Add in our generic and error logs
-      transports.push(new winston.transports.File({
-        name: 'error-file',
-        label: logName,
-        level: 'warn',
-        maxSize: 500000,
-        maxFiles: 2,
-        filename: path.join(logDir, `${logName}-error.log`),
-      }));
-      transports.push(new winston.transports.File({
-        name: 'log-file',
-        label: logName,
-        level: logLevel,
-        maxSize: 500000,
-        maxFiles: 3,
-        filename: path.join(logDir, `${logName}.log`),
-      }));
+    if (this.logDir) {
+      try {
+        fs.mkdirSync(this.logDir, { recursive: true });
+        this.errorStream = fs.createWriteStream(path.join(this.logDir, 'error.log'), { flags: 'a' });
+        this.mainStream = fs.createWriteStream(path.join(this.logDir, `${this.logName}.log`), { flags: 'a' });
+      } catch {
+        // Silently fail if we can't create log directory
+      }
     }
-    // Get the winston logger
-    super({transports: transports, exitOnError: true, colors: logColors});
-
-    // set initial timestamp
-    this.lasttime = Date.now();
-    // Extend with special lando things
-    this.sanitizedKeys = ['auth', 'token', 'password', 'key', 'api_key', 'secret', 'machine_token'];
-    // Loop through our sanitizedKeys and add sanitation
-    _.forEach(this.sanitizedKeys, key => this.rewriters.push(keySanitizer(key)));
-
-    // save the initial config for shiming
-    this.shim = {logDir, extra, logLevelConsole, logLevel, logName};
   }
 
-  // Method to help other things add sanitizations
-  alsoSanitize(key) {
-    this.sanitizedKeys.push(key);
-    this.rewriters.push(keySanitizer(key));
+  alsoSanitize(key: string): void {
+    if (!this.sanitizedKeys.includes(key)) {
+      this.sanitizedKeys.push(key);
+    }
   }
-};
+
+  private sanitize(obj: unknown): unknown {
+    if (typeof obj !== 'object' || obj === null) return obj;
+    
+    const sanitized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
+      if (this.sanitizedKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
+        sanitized[key] = '***REDACTED***';
+      } else if (typeof value === 'object' && value !== null) {
+        sanitized[key] = this.sanitize(value);
+      } else {
+        sanitized[key] = value;
+      }
+    }
+    return sanitized;
+  }
+
+  private shouldLog(level: LogLevel, isConsole: boolean): boolean {
+    const threshold = isConsole ? LEVEL_VALUES[this.logLevelConsole] : LEVEL_VALUES[this.logLevel];
+    return LEVEL_VALUES[level] <= threshold;
+  }
+
+  private formatMessage(level: LogLevel, message: string, meta?: Record<string, unknown>): string {
+    const timestamp = new Date().toISOString();
+    const sanitizedMeta = meta ? this.sanitize(meta) : undefined;
+    const metaStr = sanitizedMeta ? ` ${util.inspect(sanitizedMeta, { depth: 4, colors: false })}` : '';
+    return `${timestamp} [${level.toUpperCase()}] ${message}${metaStr}`;
+  }
+
+  private formatConsole(level: LogLevel, message: string, meta?: Record<string, unknown>): string {
+    const color = LEVEL_COLORS[level];
+    const timestamp = new Date().toISOString().split('T')[1].replace('Z', '');
+    const sanitizedMeta = meta ? this.sanitize(meta) : undefined;
+    const metaStr = sanitizedMeta ? ` ${util.inspect(sanitizedMeta, { depth: 4, colors: true })}` : '';
+    return `${color}${timestamp} ${level.toUpperCase().padEnd(7)}${RESET} ${message}${metaStr}`;
+  }
+
+  private log(level: LogLevel, message: string, meta?: Record<string, unknown>): void {
+    if (this.shouldLog(level, true)) {
+      console.error(this.formatConsole(level, message, meta));
+    }
+
+    if (this.shouldLog(level, false)) {
+      const formatted = this.formatMessage(level, message, meta) + '\n';
+      
+      if (this.mainStream) {
+        this.mainStream.write(formatted);
+      }
+      
+      if (level === 'error' && this.errorStream) {
+        this.errorStream.write(formatted);
+      }
+    }
+  }
+
+  error(message: string, meta?: Record<string, unknown>): void {
+    this.log('error', message, meta);
+  }
+
+  warn(message: string, meta?: Record<string, unknown>): void {
+    this.log('warn', message, meta);
+  }
+
+  info(message: string, meta?: Record<string, unknown>): void {
+    this.log('info', message, meta);
+  }
+
+  verbose(message: string, meta?: Record<string, unknown>): void {
+    this.log('verbose', message, meta);
+  }
+
+  debug(message: string, meta?: Record<string, unknown>): void {
+    this.log('debug', message, meta);
+  }
+
+  silly(message: string, meta?: Record<string, unknown>): void {
+    this.log('silly', message, meta);
+  }
+}
+
+export default Log;

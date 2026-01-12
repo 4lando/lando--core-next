@@ -1,8 +1,8 @@
-'use strict';
+import shellEscape from './shell-escape.js';
 
 // Modules
-const _ = require('lodash');
-const isStringy = require('./is-stringy');
+import _ from 'lodash';
+import isStringy from './is-stringy.js';
 
 /*
  * Helper to get dynamic service keys for stripping
@@ -74,7 +74,7 @@ const parseCommand = (cmd, service, sapis) => {
 };
 
 // adds required methods to ensure the lando v3 debugger can be injected into v4 things
-module.exports = (cmd, service, options = {}, answers = {}, sapis = {}) => _(cmd)
+export default (cmd, service, options = {}, answers = {}, sapis = {}) => _(cmd)
   // Put into an object so we can handle "multi-service" tooling
   .map(cmd => parseCommand(cmd, service, sapis))
   // Handle dynamic services
@@ -82,7 +82,7 @@ module.exports = (cmd, service, options = {}, answers = {}, sapis = {}) => _(cmd
   // Add in any argv extras if they've been passed in
   .map(config => handleOpts(config, handlePassthruOpts(options, answers)))
   // Wrap the command in /bin/sh if that makes sense
-  .map(config => ({...config, command: require('./shell-escape')(config.command, true, config.args, config.sapi)}))
+  .map(config => ({...config, command: shellEscape(config.command, true, config.args, config.sapi)}))
   // Add any args to the command and compact to remove undefined
   .map(config => ({...config, command: _.compact(config.command.concat(config.args))}))
   // Put into an object

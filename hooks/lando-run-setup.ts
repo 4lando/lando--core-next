@@ -1,6 +1,8 @@
-'use strict';
+import buildConfig from '../utils/build-config.js';
+import getComposeX from '../utils/get-compose-x.js';
+import setupEngine from '../utils/setup-engine.js';
 
-module.exports = async lando => {
+export default async lando => {
   // get the user setup defaults
   const sopts = lando?.config?.setup;
   // we dont need to show the summary here
@@ -32,14 +34,14 @@ module.exports = async lando => {
       // reload plugins
       await lando.reloadPlugins();
       // reload needed config
-      const {orchestratorBin, orchestratorVersion, dockerBin, engineConfig} = require('../utils/build-config')();
+      const {orchestratorBin, orchestratorVersion, dockerBin, engineConfig} = buildConfig();
       // reset needed config
       lando.config = {...lando.config, orchestratorBin, orchestratorVersion, dockerBin, engineConfig};
       // we need to explicitly reset this for some reason
-      lando.config.orchestratorBin = require('../utils/get-compose-x')(lando.config);
+      lando.config.orchestratorBin = getComposeX(lando.config);
 
       // reload engine
-      lando.engine = require('../utils/setup-engine')(
+      lando.engine = setupEngine(
         lando.config,
         lando.cache,
         lando.events,

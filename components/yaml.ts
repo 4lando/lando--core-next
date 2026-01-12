@@ -1,9 +1,8 @@
-'use strict';
-
-const fs = require('fs');
-const path = require('path');
-const yaml = require('js-yaml');
-const validPath = require('valid-path');
+import fs from 'fs';
+import path from 'path';
+import yaml from 'js-yaml';
+import validPath from 'valid-path';
+import traverseUp from '../utils/traverse-up.js';
 
 // @TODO: add in fileloader mapping?
 // @TODO: integrate and rebase using read?
@@ -24,7 +23,7 @@ const parseFileTypeInput = input => {
 
 // helper to find file
 const findFile = (file, base = undefined) => {
-  return require('../utils/traverse-up')([file], path.resolve(base))
+  return traverseUp([file], path.resolve(base))
     .map(candidate => path.join(path.dirname(candidate), file))
     .find(candidate => fs.existsSync(candidate));
 };
@@ -160,4 +159,4 @@ yaml.dump = (data, options = {}) => {
 };
 
 
-module.exports = yaml;
+export default yaml;

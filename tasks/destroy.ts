@@ -1,6 +1,6 @@
-'use strict';
+import runSetup from '../hooks/lando-run-setup';
 
-module.exports = lando => {
+export default lando => {
   return {
     command: 'destroy',
     describe: 'Destroys your app',
@@ -23,7 +23,7 @@ module.exports = lando => {
       if (app) {
         console.log(lando.cli.makeArt('appDestroy', {name: app.name, phase: 'pre'}));
         // run setup if we need to
-        await require('../hooks/lando-run-setup')(lando);
+        await runSetup(lando);
         // destroy
         await app.destroy();
         console.log(lando.cli.makeArt('appDestroy', {name: app.name, phase: 'post'}));

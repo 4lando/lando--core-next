@@ -1,141 +1,154 @@
-'use strict';
+import fs from 'node:fs';
+import path from 'node:path';
 
-// Modules
-const _ = require('lodash');
-const fs = require('fs');
-const jsonfile = require('jsonfile');
-const Log = require('./logger');
-const NodeCache = require('node-cache');
-const os = require('os');
-const path = require('path');
+interface CacheOptions {
+  stdTTL?: number;
+  checkperiod?: number;
+  useClones?: boolean;
+}
 
-/*
- * Creates a new Cache instance.
- */
-class Cache extends NodeCache {
-  constructor({log = new Log(), cacheDir = path.join(os.tmpdir(), '.cache')} = {}) {
-    // Get the nodecache opts
-    super();
-    // Set some things
-    this.log = log;
-    this.cacheDir = cacheDir;
-    // Ensure the cache dir exists
-    fs.mkdirSync(this.cacheDir, {recursive: true});
-  }
+interface CacheEntry<T> {
+  value: T;
+  expires: number | null;
+}
 
-  /**
-   * Sets an item in the cache
-   *
-   * @since 3.0.0
-   * @alias lando.cache.set
-   * @param {String} key The name of the key to store the data with.
-   * @param {Any} data The data to store in the cache.
-   * @param {Object} [opts] Options to pass into the cache
-   * @param {Boolean} [opts.persist=false] Whether this cache data should persist between processes. Eg in a file instead of memory
-   * @param {Integer} [opts.ttl=0] Seconds the cache should live. 0 mean forever.
-   * @example
-   * // Add a string to the cache
-   * lando.cache.set('mykey', 'mystring');
-   *
-   * // Add an object to persist in the file cache
-   * lando.cache.set('mykey', data, {persist: true});
-   *
-   * // Add an object to the cache for five seconds
-   * lando.cache.set('mykey', data, {ttl: 5});
-   */
-  set(key, data, {persist = false, ttl = 0} = {}) {
-    // Unsafe cache key patterns
-    const patterns = {
-      controlRe: /[\x00-\x1f\x80-\x9f]/g, // eslint-disable-line no-control-regex
-      illegalRe: /[/?<>\\:*|":]/g,
-      reservedRe: /^\.+$/,
-      windowsReservedRe: /^(con|prn|aux|nul|com[0-9]|lpt[0-9])(\..*)?$/i,
-      windowsTrailingRe: /[. ]+$/,
-    };
-    _.map(patterns, pattern => {
-      if (key.match(pattern)) throw new Error(`Invalid cache key: ${key}`);
-    });
+export default class Cache {
+  private store: Map<string, CacheEntry<unknown>> = new Map();
+  private stdTTL: number;
+  private checkperiod: number;
+  private timer: ReturnType<typeof setInterval> | null = null;
+  
+  log: any;
+  cacheDir: string;
 
-    // Try to set cache
-    if (this.__set(key, data, ttl)) {
-      this.log.debug('Cached %j with key %s for %j', data, key, {persist, ttl});
-    } else {
-      this.log.debug('Failed to cache %j with key %s', data, key);
+  constructor(options: CacheOptions = {}) {
+    this.stdTTL = options.stdTTL ?? 0;
+    this.checkperiod = options.checkperiod ?? 600;
+    this.log = console;
+    this.cacheDir = '';
+    
+    if (this.checkperiod > 0) {
+      this.timer = setInterval(() => this.checkExpired(), this.checkperiod * 1000);
     }
-
-    // And add to file if we have persistence
-    if (persist) jsonfile.writeFileSync(path.join(this.cacheDir, key), data);
   }
 
-  /**
-   * Gets an item in the cache
-   *
-   * @since 3.0.0
-   * @alias lando.cache.get
-   * @param {String} key The name of the key to retrieve the data.
-   * @return {Any} The data stored in the cache if applicable.
-   * @example
-   * // Get the data stored with key mykey
-   * const data = lando.cache.get('mykey');
-   */
-  get(key) {
-    // Get from cache
-    const memResult = this.__get(key);
-
-    // Return result if its in memcache
-    if (memResult) {
-      this.log.debug('Retrieved from memcache with key %s', key);
-      return memResult;
-    } else {
-      try {
-        this.log.debug('Trying to retrieve from file cache with key %s', key);
-        return jsonfile.readFileSync(path.join(this.cacheDir, key));
-      } catch {
-        this.log.debug('File cache miss with key %s', key);
+  private checkExpired(): void {
+    const now = Date.now();
+    for (const [key, entry] of this.store) {
+      if (entry.expires !== null && entry.expires < now) {
+        this.store.delete(key);
       }
     }
   }
 
-  /**
-   * Manually remove an item from the cache.
-   *
-   * @since 3.0.0
-   * @alias lando.cache.remove
-   * @param {String} key The name of the key to remove the data.
-   * @example
-   * // Remove the data stored with key mykey
-   * lando.cache.remove('mykey');
-   */
-  remove(key) {
-    // Try to get cache
-    if (this.__del(key)) this.log.debug('Removed key %s from memcache.', key);
-    else this.log.debug('Failed to remove key %s from memcache.', key);
+  private getExpiry(ttl?: number): number | null {
+    const effectiveTTL = ttl ?? this.stdTTL;
+    return effectiveTTL > 0 ? Date.now() + effectiveTTL * 1000 : null;
+  }
 
-    // Also remove file if applicable
+  set<T>(key: string, value: T, ttl?: number): boolean {
+    this.store.set(key, { value, expires: this.getExpiry(ttl) });
+    return true;
+  }
+
+  get<T>(key: string): T | undefined {
+    const entry = this.store.get(key);
+    if (!entry) return undefined;
+    if (entry.expires !== null && entry.expires < Date.now()) {
+      this.store.delete(key);
+      return undefined;
+    }
+    return entry.value as T;
+  }
+
+  del(key: string | string[]): number {
+    const keys = Array.isArray(key) ? key : [key];
+    let count = 0;
+    for (const k of keys) {
+      if (this.store.delete(k)) count++;
+    }
+    return count;
+  }
+
+  keys(): string[] {
+    return Array.from(this.store.keys());
+  }
+
+  has(key: string): boolean {
+    return this.get(key) !== undefined;
+  }
+
+  flushAll(): void {
+    this.store.clear();
+  }
+
+  close(): void {
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+  }
+
+  setCache(key: string, data: unknown): boolean {
+    const cacheFile = path.join(this.cacheDir, `${key}.json`);
+    
     try {
-      fs.unlinkSync(path.join(this.cacheDir, key));
+      this.set(key, data);
+      this.log.debug?.('Setting cache key %s to memory.', key);
     } catch {
-      this.log.debug('No file cache with key %s', key);
+      this.log.debug?.('Failed setting cache key %s to memory.', key);
+    }
+
+    try {
+      fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+      fs.writeFileSync(cacheFile, JSON.stringify(data, null, 2));
+      this.log.debug?.('Setting cache key %s to disk at %s.', key, cacheFile);
+      return true;
+    } catch {
+      this.log.debug?.('Failed setting cache key %s to disk.', key);
+      return false;
+    }
+  }
+
+  getCache(key: string): unknown {
+    const cacheFile = path.join(this.cacheDir, `${key}.json`);
+    const memoryData = this.get(key);
+    
+    if (memoryData !== undefined) {
+      this.log.debug?.('Cache key %s retrieved from memory.', key);
+      return memoryData;
+    }
+
+    try {
+      if (fs.existsSync(cacheFile)) {
+        const data = JSON.parse(fs.readFileSync(cacheFile, 'utf8'));
+        this.log.debug?.('Cache key %s retrieved from disk at %s.', key, cacheFile);
+        this.set(key, data);
+        return data;
+      }
+      this.log.debug?.('Cache key %s not found on disk.', key);
+    } catch {
+      this.log.debug?.('Failed reading cache key %s from disk.', key);
+    }
+    
+    return undefined;
+  }
+
+  removeCache(key: string): boolean {
+    const cacheFile = path.join(this.cacheDir, `${key}.json`);
+    
+    this.del(key);
+    this.log.debug?.('Removed cache key %s from memory.', key);
+    
+    try {
+      if (fs.existsSync(cacheFile)) {
+        fs.unlinkSync(cacheFile);
+        this.log.debug?.('Removed cache file %s.', cacheFile);
+      }
+      return true;
+    } catch {
+      this.log.debug?.('Failed removing cache file %s.', cacheFile);
+      return false;
     }
   }
 }
-
-/*
- * Stores the old get method.
- */
-Cache.prototype.__get = NodeCache.prototype.get;
-
-/*
- * Stores the old set method.
- */
-Cache.prototype.__set = NodeCache.prototype.set;
-
-/*
- * Stores the old del method.
- */
-Cache.prototype.__del = NodeCache.prototype.del;
-
-/*
- * Return the class
- */
-module.exports = Cache;

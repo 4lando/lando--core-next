@@ -1,6 +1,5 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 // Helper to bind exposed ports to the correct address
 const normalizeBind = (bind, address = '127.0.0.1') => {
@@ -20,7 +19,7 @@ const normalizeBind = (bind, address = '127.0.0.1') => {
   return `${address}::${bind}`;
 };
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   _.forEach(app.composeData, service => {
     _.forEach(service.data, datum => {
       _.forEach(datum.services, props => {

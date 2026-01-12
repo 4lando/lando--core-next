@@ -1,15 +1,16 @@
-'use strict';
-
-// Modules
-const fs = require('fs');
-const path = require('path');
-const _ = require('lodash');
-
-const {color} = require('listr2');
+import fs from 'fs';
+import path from 'path';
+import _ from 'lodash';
+import {color} from '../utils/listr2.js';
+import stringArgv from 'string-argv';
+import AsyncEvents from '../lib/events';
+import runEvents from '../hooks/app-run-events';
+import buildToolingRunner from '../utils/build-tooling-runner';
+import buildDockerExec from '../utils/build-docker-exec';
 
 // @TODO: when we have a file for recipes/compose we can set choices on service
 
-module.exports = (lando, config = lando.appConfig) => ({
+export default (lando, config = lando.appConfig) => ({
   command: 'exec',
   describe: 'Runs command(s) on a service',
   usage: '$0 exec <service> [--user <user>] -- <command>',
@@ -44,7 +45,7 @@ module.exports = (lando, config = lando.appConfig) => ({
     }
 
     // Build a minimal app
-    const AsyncEvents = require('../lib/events');
+    // AsyncEvents imported at top
     const app = lando.cache.get(path.basename(minapp.composeCache));
 
     // augment
@@ -54,7 +55,7 @@ module.exports = (lando, config = lando.appConfig) => ({
     // Load only what we need so we don't pay the appinit penalty
     if (!_.isEmpty(_.get(app, 'config.events', []))) {
       _.forEach(app.config.events, (cmds, name) => {
-        app.events.on(name, 9999, async data => await require('../hooks/app-run-events')(app, lando, cmds, data));
+        app.events.on(name, 9999, async data => await runEvents(app, lando, cmds, data));
       });
     }
 
@@ -93,7 +94,7 @@ module.exports = (lando, config = lando.appConfig) => ({
     // if command is a single thing then lets string argv that
     // this is useful to handle wrapping more complex commands a la "cmd && cmd"
     if (Array.isArray(options.command) && options.command.length === 1) {
-      if (require('string-argv')(options.command[0]).length > 1) {
+      if (stringArgv(options.command[0]).length > 1) {
         options.command = ['sh', '-c', options.command[0]];
       }
     }
@@ -132,12 +133,12 @@ module.exports = (lando, config = lando.appConfig) => ({
     await app.events.emit('pre-exec', config);
 
     // get tooling runner
-    const runner = require('../utils/build-tooling-runner')(...ropts);
+    const runner = buildToolingRunner(...ropts);
 
     // try to run it
     try {
       lando.log.debug('running exec command %o on %o', runner.cmd, runner.id);
-      await require('../utils/build-docker-exec')(lando, 'inherit', runner);
+      await buildDockerExec(lando, 'inherit', runner);
 
     // error
     } catch (error) {

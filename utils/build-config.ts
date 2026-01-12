@@ -1,8 +1,22 @@
-'use strict';
+import semverMajor from 'semver/functions/major';
+import getComposeX from './get-compose-x.js';
+import loadConfigFiles from './load-config-files.js';
+import loadEnv from './load-env.js';
+import loadEnvPluginConfig from './load-env-plugin-config.js';
+import getConfigDefaults from './get-config-defaults.js';
+import getEngineConfig from './get-engine-config.js';
+import getOclifCacheDir from './get-cache-dir.js';
+import stripEnv from './strip-env.js';
+import semverValid from 'semver/functions/valid';
+import legacyMerge from './legacy-merge.js';
+import hasher from 'object-hash';
 
-const _ = require('lodash');
-const fs = require('fs');
-const path = require('path');
+import _ from 'lodash';
+import fs from 'fs';
+import path from 'path';
+
+// ESM equivalent of __dirname
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 /*
  * Converts landofile things into a configsource
@@ -15,15 +29,9 @@ const parseLandofileConfig = (config = {}) => ({
   landoFile: true,
 });
 
-module.exports = options => {
-  // Modules
-  const hasher = require('object-hash');
-
-  const lmerge = require('./legacy-merge');
-  const getConfigDefaults = require('../utils/get-config-defaults');
-  const getEngineConfig = require('../utils/get-engine-config');
-  const getOclifCacheDir = require('../utils/get-cache-dir');
-  const stripEnv = require('../utils/strip-env');
+export default options => {
+  // Use the legacy merge function
+  const lmerge = legacyMerge;
 
   // Start building the config
   let config = lmerge(getConfigDefaults(options), options);
@@ -44,18 +52,18 @@ module.exports = options => {
 
   // If we have configSources let's merge those in as well
   if (!_.isEmpty(config.configSources)) {
-    config = lmerge(config, require('../utils/load-config-files')(config.configSources));
+    config = lmerge(config, loadConfigFiles(config.configSources));
   }
 
   // @TODO: app plugin dir gets through but core yml does not?
   // If we have an envPrefix set then lets merge that in as well
   if (_.has(config, 'envPrefix')) {
-    config = lmerge(config, require('../utils/load-env')(config.envPrefix));
+    config = lmerge(config, loadEnv(config.envPrefix));
   }
 
   // special handling for LANDO_PLUGIN_CONFIG
   if (_.keys(config, 'envPrefix')) {
-    config = lmerge(config, require('../utils/load-env-plugin-config')(config.envPrefix));
+    config = lmerge(config, loadEnvPluginConfig(config.envPrefix));
   }
 
   // Add some final computed properties to the config
@@ -84,14 +92,14 @@ module.exports = options => {
   }
 
   // if orchestrator is not a valid version then remove it and try to use a system provided orchestartor
-  if (require('semver/functions/valid')(config.orchestratorVersion) === null) {
-    config.orchestratorBin = require('./get-compose-x')(config);
+  if (semverValid(config.orchestratorVersion) === null) {
+    config.orchestratorBin = getComposeX(config);
     delete config.orchestratorVersion;
   }
 
   // if we still have an orchestrator version at this point lets try to suss out its major version
-  if (config.orchestratorVersion && require('semver/functions/valid')(config.orchestratorVersion)) {
-    config.orchestratorMV = require('semver/functions/major')(config.orchestratorVersion);
+  if (config.orchestratorVersion && semverValid(config.orchestratorVersion)) {
+    config.orchestratorMV = semverMajor(config.orchestratorVersion);
     config.setup.orchestrator = config.setup.orchestrator ?? config.orchestratorVersion;
   }
 

@@ -1,5 +1,4 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = version => _.slice(version.split('.'), 0, 2).join('.');
+export default version => _.slice(version.split('.'), 0, 2).join('.');

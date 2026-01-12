@@ -1,8 +1,7 @@
-'use strict';
 
-const LandoDebugRenderer = require('./debug');
+import LandoDebugRenderer from './debug.js';
 
-const {color} = require('listr2');
+import {color} from '../utils/listr2.js';
 
 class DC2DebugRenderer extends LandoDebugRenderer {
   constructor(tasks, options, $renderHook) {
@@ -43,5 +42,5 @@ class DC2DebugRenderer extends LandoDebugRenderer {
   }
 }
 
-module.exports = DC2DebugRenderer;
+export default DC2DebugRenderer;
 

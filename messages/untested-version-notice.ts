@@ -1,7 +1,6 @@
-'use strict';
 
 // checks to see if a setting is disabled
-module.exports = ({name, version, tested}) => ({
+export default ({name, version, tested}) => ({
   type: 'info',
   title: `Using an untested version of DOCKER ${name.toUpperCase()}`,
   detail: [

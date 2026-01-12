@@ -1,9 +1,8 @@
-'use strict';
 
-const os = require('os');
-const path = require('path');
+import os from 'os';
+import path from 'path';
 
-module.exports = ({
+export default ({
   envPrefix = 'LANDO',
   runtime = 3,
   userConfRoot = path.join(os.homedir(), '.lando'),

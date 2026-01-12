@@ -1,9 +1,9 @@
-'use strict';
+import getUser from './get-user.js';
 
 // Modules
-const _ = require('lodash');
+import _ from 'lodash';
 
-const {nanoid} = require('nanoid');
+import {nanoid} from 'nanoid';
 
 // Helper to find the default service
 const getDefaultService = (data = {}, defaultService = 'appserver') => {
@@ -36,7 +36,7 @@ const getService = (cmd, data = {}, defaultService = 'appserver') => {
 };
 
 // adds required methods to ensure the lando v3 debugger can be injected into v4 things
-module.exports = (cmds, app, data = {}) => _.map(cmds, cmd => {
+export default (cmds, app, data = {}) => _.map(cmds, cmd => {
   // Discover the service
   const service = getService(cmd, data, app._defaultService);
   // compute stdio based on compose major version
@@ -95,7 +95,7 @@ module.exports = (cmds, app, data = {}) => _.map(cmds, cmd => {
     opts: {
       cstdio,
       mode: 'attach',
-      user: require('./get-user')(service, app.info),
+      user: getUser(service, app.info),
       services: [service],
       environment: {
         DEBUG: app.debuggy ? '1' : '',

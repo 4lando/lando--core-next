@@ -1,3 +1,3 @@
-'use strict';
+import isRoot from 'is-root';
 
-module.exports = () => require('is-root')() ? 'system' : 'user';
+export default () => isRoot() ? 'system' : 'user';

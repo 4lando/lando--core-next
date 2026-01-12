@@ -1,6 +1,5 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
 // Update built against
 const updateBuiltAgainst = (app, version = 'unknown') => {
@@ -8,6 +7,6 @@ const updateBuiltAgainst = (app, version = 'unknown') => {
   return app.meta;
 };
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   lando.cache.set(app.metaCache, updateBuiltAgainst(app, app._config.version), {persist: true});
 };

@@ -1,15 +1,15 @@
-'use strict';
+import {color} from '../utils/listr2.js';
 
-const {color} = require('listr2');
+import getBinPaths from '../utils/get-bin-paths.js';
 
 const {bold} = color;
 
-module.exports = async (app, lando) => {
+export default async (app, lando) => {
   // snag cli config
   const config = lando?.config?.cli;
 
   // push a message if the install path is not in the bin or is
-  if (config?.installPath && require('../utils/get-bin-paths')(config).includes(config.installPath)) {
+  if (config?.installPath && getBinPaths(config).includes(config.installPath)) {
     app.addMessage({
       title: 'Lando update location not in PATH!',
       type: 'warning',

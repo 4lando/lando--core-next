@@ -1,10 +1,9 @@
-'use strict';
 
-const axios = require('axios');
+import axios from 'axios';
 
-const {HttpAgent, HttpsAgent} = require('@npmcli/agent');
+import {HttpAgent, HttpsAgent} from '@npmcli/agent';
 
-module.exports = (opts = {}, httpOpts = {}, httpsOpts = {}) => axios.create({
+export default (opts = {}, httpOpts = {}, httpsOpts = {}) => axios.create({
   httpAgent: new HttpAgent({family: 4, ...httpOpts}),
   httpsAgent: new HttpsAgent({family: 4, ...httpsOpts}),
   ...opts,

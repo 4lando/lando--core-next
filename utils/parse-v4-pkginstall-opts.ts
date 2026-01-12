@@ -1,9 +1,8 @@
 
-'use strict';
 
-const isObject = require('lodash/isPlainObject');
+import isObject from 'lodash/isPlainObject';
 
-module.exports = options => {
+export default options => {
   // if options are a string then make into an array
   if (typeof options === 'string') options = [options];
   // if options are an object then break into options pairs

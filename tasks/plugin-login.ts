@@ -1,6 +1,12 @@
-'use strict';
+import merge from 'lodash/merge';
+import profile from 'npm-profile';
+import {color} from '../utils/listr2.js';
 
-module.exports = lando => {
+import getPluginConfig from '../utils/get-plugin-config';
+import lopts2Popts from '../utils/lopts-2-popts';
+import write from '../utils/write-file';
+
+export default lando => {
   return {
     command: 'plugin-login',
     usage: '$0 plugin-login [--username <username>] [--password <password>] [--registry <registry>]',
@@ -49,14 +55,6 @@ module.exports = lando => {
       },
     },
     run: async options => {
-      const merge = require('lodash/merge');
-      const profile = require('npm-profile');
-      const getPluginConfig = require('../utils/get-plugin-config');
-      const lopts2Popts = require('../utils/lopts-2-popts');
-      const write = require('../utils/write-file');
-
-      const {color} = require('listr2');
-
       // get relevant options
       const {username, password, registry} = options;
 

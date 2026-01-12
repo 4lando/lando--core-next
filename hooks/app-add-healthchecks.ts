@@ -1,12 +1,15 @@
-'use strict';
+import _ from 'lodash';
+import createDebug from '../utils/debug.js';
+import {color} from '../utils/listr2.js';
+import delay from 'delay';
 
-const _ = require('lodash');
-const debug = require('debug')('@lando/core:healthcheck');
-const isStringy = require('../utils/is-stringy');
+import isStringy from '../utils/is-stringy.js';
+import normalizeHealthcheck from '../utils/normalize-healthcheck.js';
+import isDisabled from '../utils/is-disabled.js';
 
-const {color} = require('listr2');
+const debug = createDebug('@lando/core:healthcheck');
 
-module.exports = async app => {
+export default async app => {
   const exec = (command, container, {api = 3, service, log = debug, user = 'root'} = {}) => {
     log('running %o healthcheck %o...', service, command);
 
@@ -49,7 +52,7 @@ module.exports = async app => {
       container: app.containers[info.service],
       name: info.service,
       service: info.service,
-      ...require('../utils/normalize-healthcheck')(info.healthcheck),
+      ...normalizeHealthcheck(info.healthcheck),
     }))
     .value();
 
@@ -61,7 +64,7 @@ module.exports = async app => {
       container: app.containers[service.name],
       name: service.name,
       service: service.name,
-      ...require('../utils/normalize-healthcheck')(service.healthcheck),
+      ...normalizeHealthcheck(service.healthcheck),
     }))
     .value();
   const newV4Healthchecks = _(_.get(app, 'v4.services', []))
@@ -72,7 +75,7 @@ module.exports = async app => {
       container: app.containers[service.name],
       name: service.name,
       service: service.name,
-      ...require('../utils/normalize-healthcheck')(service.healthcheck),
+      ...normalizeHealthcheck(service.healthcheck),
     }))
     .value();
 
@@ -80,7 +83,7 @@ module.exports = async app => {
   const healthchecks = _([...newV3Healthchecks, ...newV4Healthchecks, ...legacyHealthchecks])
     .groupBy('container')
     .map(checks => checks[0])
-    .filter(check => !require('../utils/is-disabled')(check.command))
+    .filter(check => !isDisabled(check.command))
     .filter(check => {
       const info = app.info.find(data => data.service === check.service);
       return info.error === undefined;
@@ -125,7 +128,7 @@ module.exports = async app => {
         if (count === healthcheck.retry) {
           ctx.errors.push(error);
         } else {
-          await require('delay')(healthcheck.delay + (100 * count));
+          await delay(healthcheck.delay + (100 * count));
         }
 
         throw error;
@@ -135,7 +138,7 @@ module.exports = async app => {
       } finally {
         const service = _.find(app.info, {service: healthcheck.service});
         service.healthy = _.find(ctx.errors, {service: healthcheck.service}) === undefined;
-        await require('delay')(1000);
+        await delay(1000);
       }
     },
   }))

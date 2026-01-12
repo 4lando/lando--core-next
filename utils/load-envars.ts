@@ -1,12 +1,13 @@
-'use strict';
+import camelCase from 'lodash/camelCase';
+import tryConvertJson from './try-convert-json.js';
 
-module.exports = prefix => {
+export default prefix => {
   return Object.fromEntries(Object.keys(process.env)
     // filter out keys that dont make sense
     .filter(key => key.startsWith(`${prefix}_`))
     // map to key/pair values
     .map(key => ([
-      require('lodash/camelCase')(key.replace(`${prefix}_`, '')),
-      require('./try-convert-json')(process.env[key]),
+      camelCase(key.replace(`${prefix}_`, '')),
+      tryConvertJson(process.env[key]),
     ])));
 };

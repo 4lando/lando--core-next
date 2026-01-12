@@ -1,5 +1,4 @@
-'use strict';
 
-const _ = require('lodash');
+import _ from 'lodash';
 
-module.exports = mount => _.dropRight(mount.split(':')).join(':');
+export default mount => _.dropRight(mount.split(':')).join(':');

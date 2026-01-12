@@ -1,10 +1,13 @@
-'use strict';
+import groupBy from 'lodash/groupBy';
+import merge from 'lodash/merge';
+import sortBy from 'lodash/sortBy';
 
-const groupBy = require('lodash/groupBy');
-const merge = require('lodash/merge');
-const sortBy = require('lodash/sortBy');
+import {color, figures} from '../utils/listr2.js';
 
-const {color, figures} = require('listr2');
+import debugShim from '../utils/debug-shim';
+import parsePackageName from '../utils/parse-package-name';
+import parseToPluginStrings from '../utils/parse-to-plugin-strings';
+import shutdownOs from '../utils/shutdown-os';
 
 const defaultStatus = {
   'CANNOT INSTALL': 0,
@@ -63,7 +66,7 @@ const getStatusTable = items => ({
   },
 });
 
-module.exports = lando => {
+export default lando => {
   // get defaults from the lando config
   const defaults = lando.config.setup;
   // determine label for build engine
@@ -82,7 +85,7 @@ module.exports = lando => {
     },
     'plugin': {
       describe: 'Sets additional plugin(s) to install',
-      default: require('../utils/parse-to-plugin-strings')(defaults.plugins),
+      default: parseToPluginStrings(defaults.plugins),
       array: true,
     },
     'skip-common-plugins': {
@@ -140,7 +143,6 @@ module.exports = lando => {
     options,
     run: async options => {
       // @TODO: conditional visibility for lando setup re first time run succesfully?
-      const parsePkgName = require('../utils/parse-package-name');
       const ux = lando.cli.getUX();
 
       // setup header
@@ -153,7 +155,7 @@ module.exports = lando => {
       // start by looping through option.plugin and object merging
       // this should allow us to skip plugin-resolution because its just going to always use the "last" version
       for (const plugin of options.plugin) {
-        const {name, peg} = parsePkgName(plugin);
+        const {name, peg} = parsePackageName(plugin);
         options.plugins[name] = peg === '*' ? 'latest' : peg;
       }
 
@@ -284,8 +286,8 @@ module.exports = lando => {
             }
           }
           ux.action.start('Restarting');
-          await require('../utils/shutdown-os')({
-            debug: require('../utils/debug-shim')(lando.log),
+          await shutdownOs({
+            debug: debugShim(lando.log),
             message: 'Lando needs to restart to complete setup!',
           });
           ux.action.stop(color.green('done'));

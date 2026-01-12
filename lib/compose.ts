@@ -1,7 +1,4 @@
-'use strict';
-
-// Modules
-const _ = require('lodash');
+import _ from 'lodash';
 
 // Helper object for flags
 const composeFlags = {
@@ -76,44 +73,44 @@ const buildShell = (run, name, compose, opts = {}) => ({
 /*
  * Run docker compose build
  */
-exports.build = (compose, project, opts = {}) => {
-  const build = _(opts.local).filter(service => {
+export const build = (compose, project, opts = {}) => {
+  const buildServices = _(opts.local).filter(service => {
     return _.isEmpty(opts.services) || _.includes(opts.services, service);
   }).value();
-  if (!_.isEmpty(build)) return buildShell('build', project, compose, {pull: _.isEmpty(opts.local), services: build});
+  if (!_.isEmpty(buildServices)) return buildShell('build', project, compose, {pull: _.isEmpty(opts.local), services: buildServices});
   else return buildShell('ps', project, compose, {});
 };
 
 /*
  * Run docker compose pull
  */
-exports.getId = (compose, project, opts = {}) => buildShell('ps', project, compose, opts);
+export const getId = (compose, project, opts = {}) => buildShell('ps', project, compose, opts);
 
 /*
  * Run docker compose kill
  */
-exports.kill = (compose, project, opts = {}) => buildShell('kill', project, compose, opts);
+export const kill = (compose, project, opts = {}) => buildShell('kill', project, compose, opts);
 
 /*
  * Run docker compose logs
  */
-exports.logs = (compose, project, opts = {}) => buildShell('logs', project, compose, opts);
+export const logs = (compose, project, opts = {}) => buildShell('logs', project, compose, opts);
 
 /*
  * Run docker compose pull
  */
-exports.pull = (compose, project, opts = {}) => {
-  const pull = _(opts.pullable).filter(service => {
+export const pull = (compose, project, opts = {}) => {
+  const pullServices = _(opts.pullable).filter(service => {
     return _.isEmpty(opts.services) || _.includes(opts.services, service);
   }).value();
-  if (!_.isEmpty(pull)) return buildShell('pull', project, compose, {services: pull});
+  if (!_.isEmpty(pullServices)) return buildShell('pull', project, compose, {services: pullServices});
   else return buildShell('ps', project, compose, {});
 };
 
 /*
  * Run docker compose remove
  */
-exports.remove = (compose, project, opts = {}) => {
+export const remove = (compose, project, opts = {}) => {
   const subCmd = (opts.purge) ? 'down' : 'rm';
   return buildShell(subCmd, project, compose, opts);
 };
@@ -121,7 +118,7 @@ exports.remove = (compose, project, opts = {}) => {
 /*
  * Run docker compose run
  */
-exports.run = (compose, project, opts = {}) => {
+export const run = (compose, project, opts = {}) => {
   // add some deep handling for detaching
   // @TODO: should we let and explicit set of opts.detach override this?
   // thinking probably not because & is just not going to work the way you want without detach?
@@ -149,9 +146,22 @@ exports.run = (compose, project, opts = {}) => {
 /*
  * You can do a create, rebuild and start with variants of this
  */
-exports.start = (compose, project, opts = {}) => buildShell('up', project, compose, opts);
+export const start = (compose, project, opts = {}) => buildShell('up', project, compose, opts);
 
 /*
  * Run docker compose stop
  */
-exports.stop = (compose, project, opts = {}) => buildShell('stop', project, compose, opts);
+export const stop = (compose, project, opts = {}) => buildShell('stop', project, compose, opts);
+
+// Default export for backward compatibility
+export default {
+  build,
+  getId,
+  kill,
+  logs,
+  pull,
+  remove,
+  run,
+  start,
+  stop,
+};

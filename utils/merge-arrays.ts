@@ -1,9 +1,9 @@
-'use strict';
+import isPlainObject from 'lodash/isPlainObject';
 
-const merge = require('lodash/merge');
+import merge from 'lodash/merge';
 
 // @TODO: error handling
-module.exports = (a, b, ams = 'replace') => {
+export default (a, b, ams = 'replace') => {
   // get strat and id if applicable
   const strategy = ams.split(':')[0];
   const by = ams.split(':')[1] || 'id';
@@ -23,7 +23,7 @@ module.exports = (a, b, ams = 'replace') => {
         .reduce((acc, datum) => {
           return merge(acc, Object.fromEntries(datum.map(a => {
             // if an object do fancy stuff
-            if (require('lodash/isPlainObject')(a)) {
+            if (isPlainObject(a)) {
               if (Object.prototype.hasOwnProperty.call(a, by)) return [a[by], a];
               if (Object.keys(a).length === 1) return [Object.keys(a)[0], a];
             }

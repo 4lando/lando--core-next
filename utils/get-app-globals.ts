@@ -1,6 +1,6 @@
-'use strict';
+import toObject from './to-object.js';
 
-module.exports = app => require('./to-object')(app.services, {
+export default app => toObject(app.services, {
   networks: {default: {}},
   environment: app.env,
   env_file: app.envFiles,
